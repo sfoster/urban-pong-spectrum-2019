@@ -80,6 +80,16 @@ class DMX_Pixel_LED (Lighting_Controller):
                 idx = (idx + 1) % num_delays
         return self.dmx_succeeded
 
+    def fade(self, location, color, milliseconds):
+        """
+        Transitions light to new color over time period in milliseconds
+        :param location: index in self.devices to effect
+        :param color:
+        :param milliseconds: transition time to new color
+        :return: None
+        """
+        pass
+
     def dmx_callback(self, status):
         """
         :param status: status code returned by SendDmx()
