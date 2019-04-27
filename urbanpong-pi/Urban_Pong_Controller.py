@@ -403,9 +403,9 @@ class Controller (threading.Thread):
 
 
         # variables controller lighting configuration
-        self.num_pixels = 7      # type: int #number of LED elements
+        self.num_pixels = 128     # type: int #number of LED elements
         self.bytes_per_pixel = 4   # type: int #bytes defining pixel and color: RGBW, W is not used in this product and must be zeroed
-        self.length = 2.0          # type: float #meters, overall physical length of light strip
+        self.length = 4.0          # type: float #meters, overall physical length of light strip
         self.max_velocity = 0.0    # type: float #fastest we can go
         self.max_sleep_time = 2.0  # type: float
         self.pixel_length = self.length / (self.num_pixels - 1) # type: float # effective pixel segment length for timing calcs.
@@ -622,7 +622,7 @@ class Controller (threading.Thread):
 
         # this is the light controller. Instantiate within the threaded run method so associated
         # libraries are called from within the same thread of execution. Keeps OLA library happy.
-        self.lighting = Lighting_Controllers.LIFX_Controller("192.168.0.100", 24)
+        self.lighting = Lighting_Controllers.DMX_Pixel_LED()
 
         # TODO: add functiality to change games
         self.game.initialize()
