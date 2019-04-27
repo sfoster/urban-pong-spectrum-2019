@@ -1,0 +1,17 @@
+# Rickie Kerndt <rkerndt@cs.uoregon.edu>
+# systemd service file to strt, status and shutdown the Urban Pong game controller
+# This file should be located under directory /etc/systemd/system
+
+[Unit]
+    Description=Urban Pong
+    After=network.target
+
+[Service]
+    Type=simple
+    KillMode=process
+    SyslogIdentifier=urban_pong
+    Environment=PYTHONPATH=/home/kerndtr/lib/python3.5/site-packages
+    ExecStart=/usr/bin/python3 /home/kerndtr/work/Urban_Pong.py
+
+[Install]
+    WantedBy=multi-user.target
