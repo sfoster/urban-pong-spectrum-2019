@@ -36,6 +36,7 @@ function sendJoinMessage(btn) {
   let position = btn.dataset.position.toLowerCase().trim();
   msg.action = 'join';
   msg.position = position;
+  msg.value = "position";
   sendGameMessage(msg)
   .then(data => console.log("response: ", data))
   .catch(error => console.error(error));
