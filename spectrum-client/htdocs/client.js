@@ -1,8 +1,8 @@
 var message_template = {
-  'name': null,
-  'uuid': null,
-  'action': null,
-  'value': null,
+  'Name': null,
+  'UUID': null,
+  'Action': null,
+  'Value': null,
 }
 
 function uuidv4() {
@@ -18,9 +18,9 @@ var playerId = {
   'south': uuidv4()
 };
 
-function sendGameMessage(msg) {
-  msg.UUID = playerId[msg.position];
-  msg.Name = msg.position[0].toUpperCase() + msg.position.substring(1);
+function sendGameMessage(msg, position) {
+  msg.UUID = playerId[position];
+  msg.Name = position[0].toUpperCase() + position.substring(1);
 
   console.log("sendGameMessage:", msg);
   return fetch(message_endpoint, {
@@ -36,7 +36,7 @@ function sendJoinMessage(btn) {
   let position = btn.dataset.position.toLowerCase().trim();
   msg.Action = 'join';
   msg.Value = position;
-  sendGameMessage(msg)
+  sendGameMessage(msg, position)
   .then(data => console.log("response: ", data))
   .catch(error => console.error(error));
 }
