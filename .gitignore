@@ -1,0 +1,4 @@
+# ignore byte-compiled  and optimized python files
+__pycache__/
+*.py[cod]
+
