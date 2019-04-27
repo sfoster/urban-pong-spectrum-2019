@@ -7,7 +7,7 @@
    @author Rickie Kerndt (kerndtr@kerndt.com)
 """
 
-#from ola.ClientWrapper import ClientWrapper
+from ola.ClientWrapper import ClientWrapper
 import threading
 from time import sleep
 import ipaddress
