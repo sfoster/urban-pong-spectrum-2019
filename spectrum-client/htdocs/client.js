@@ -20,7 +20,7 @@ function sendGameMessage(msg) {
 function sendJoinMessage(btn) {
   let msg = Object.assign({}, message_template);
   msg.action = 'join';
-  msg.value = { position: btn.dataset.position };
+  msg.position = btn.dataset.position;
   sendGameMessage(msg)
   .then(data => console.log("response: ", data))
   .catch(error => console.error(error));
