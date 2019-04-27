@@ -66,7 +66,7 @@ class DMX_Pixel_LED (Lighting_Controller):
         :return: True if dmx update was successful
         """
         if self.origin != Lighting_Controller.NORTH:
-            leds = self.flip_leds(leds, 128, 4)
+            leds = self.flip_leds(leds, 4)
         self.client.SendDmx(self.universe, leds, self.dmx_callback)
         self.wait_on_dmx.clear()
         self.dmx_succeeded = False
@@ -81,7 +81,7 @@ class DMX_Pixel_LED (Lighting_Controller):
         for _ in range(repetitions):
             for leds in sequence:
                 if self.origin != Lighting_Controller.NORTH:
-                    leds = self.flip_leds(leds, 128, 4)
+                    leds = self.flip_leds(leds, 4)
                 self.client.SendDmx(self.universe, leds, self.dmx_callback)
                 sleep(delays[idx])
                 if not self.dmx_succeeded:
