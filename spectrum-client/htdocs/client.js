@@ -8,6 +8,7 @@ var message_template = {
 var message_endpoint = 'client_update';
 
 function sendGameMessage(msg) {
+  console.log("sendGameMessage:", msg);
   return fetch(message_endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -16,17 +17,11 @@ function sendGameMessage(msg) {
   // .then(response => response.json());
 }
 
-function sendJoinMessage() {
-  console.log("click");
-  let msg = message_template;
-
+function sendJoinMessage(btn) {
+  let msg = Object.assign({}, message_template);
   msg.action = 'join';
+  msg.position = btn.dataset.position;
   sendGameMessage(msg)
-  .then(data => console.log(data))
+  .then(data => console.log("response: ", data))
   .catch(error => console.error(error));
 }
-
-let button = document.getElementById("join")
-console.log(button);
-button.addEventListener("click", sendJoinMessage);
-
