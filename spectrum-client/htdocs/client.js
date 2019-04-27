@@ -12,7 +12,7 @@ function uuidv4() {
   });
 }
 
-var message_endpoint = 'controller';
+var message_endpoint = 'controller/';
 var playerId = {
   'north': uuidv4(),
   'south': uuidv4()
