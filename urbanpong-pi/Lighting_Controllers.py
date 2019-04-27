@@ -99,17 +99,16 @@ class DMX_Pixel_LED (Lighting_Controller):
         if pole != self.origin and pole in [Lighting_Controller.NORTH, Lighting_Controller.SOUTH]:
             self.origin = pole
 
-    def flip_leds(self, leds, num_leds, bytes_per_led):
+    def flip_leds(self, leds, bytes_per_led):
         """
         Reverses the led byte array
         :param leds:
         :return:
         """
-        num_bytes = num_leds * bytes_per_led
+        num_bytes = len(leds)
         byte_array = array.array('B', [0 for i in range(num_bytes)])
-
         jdx = 0
-        for idx in range(num_leds - bytes_per_led, 0, -bytes_per_led):
+        for idx in range(num_bytes - bytes_per_led, 0, -bytes_per_led):
             byte_array[jdx] = leds[idx]
             byte_array[jdx+1] = leds[idx+1]
             byte_array[jdx+2] = leds[idx+2]
