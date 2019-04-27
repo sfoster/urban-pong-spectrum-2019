@@ -25,10 +25,15 @@ class Lighting_Controller:
     Abstract class for lighting controller interface
     """
 
+    NORTH = 1
+    SOUTH = 0
+
     def __init__(self):
         self.minimum_delay = 0.0 # type: float # define value to represent the minimum time for light to execute a
                                                # color change request. This value is used by the light controller and
                                                # game controller to limit the rate of light updates.
+
+        self.origin = Lighting_Controller.NORTH
 
     def update(self, array):
         """
@@ -60,6 +65,8 @@ class DMX_Pixel_LED (Lighting_Controller):
         Send leds array to DMX controller
         :return: True if dmx update was successful
         """
+        if self.origin != Lighting_Controller.NORTH:
+            leds = self.flip_leds(leds, 128, 4)
         self.client.SendDmx(self.universe, leds, self.dmx_callback)
         self.wait_on_dmx.clear()
         self.dmx_succeeded = False
@@ -73,12 +80,42 @@ class DMX_Pixel_LED (Lighting_Controller):
         num_delays = len(delays)
         for _ in range(repetitions):
             for leds in sequence:
+                if self.origin != Lighting_Controller.NORTH:
+                    leds = self.flip_leds(leds, 128, 4)
                 self.client.SendDmx(self.universe, leds, self.dmx_callback)
                 sleep(delays[idx])
                 if not self.dmx_succeeded:
                     break
                 idx = (idx + 1) % num_delays
         return self.dmx_succeeded
+
+    def set_origin(self, pole):
+        """
+        Sets origin of lights to either begin on NORTH or SOUTH pole. This will reverse the leds list when running
+        from SOUTH.
+        :param pole: Lighting_Controller.NORTH or Lighting_Controller.SOUTH
+        :return: NONE
+        """
+        if pole != self.origin and pole in [Lighting_Controller.NORTH, Lighting_Controller.SOUTH]:
+            self.origin = pole
+
+    def flip_leds(self, leds, num_leds, bytes_per_led):
+        """
+        Reverses the led byte array
+        :param leds:
+        :return:
+        """
+        num_bytes = num_leds * bytes_per_led
+        byte_array = array.array('B', [0 for i in range(num_bytes)])
+
+        jdx = 0
+        for idx in range(num_leds - bytes_per_led, 0, -bytes_per_led):
+            byte_array[jdx] = leds[idx]
+            byte_array[jdx+1] = leds[idx+1]
+            byte_array[jdx+2] = leds[idx+2]
+            byte_array[jdx+3] = leds[idx+3]
+            jdx += 4
+        return byte_array
 
     def fade(self, location, color, milliseconds):
         """
