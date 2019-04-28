@@ -198,7 +198,7 @@ class Spectrum(Game):
         if self.defender_colors is not None and self.defender_location >= 0:
             # move colors to defenders position
             if DEBUG:
-                print("Moving defender colors to %d" % self.defender_colors)
+                # print("Moving defender colors to %d" % self.defender_colors)
                 print(self.defender_colors)
             for color in self.defender_colors:
                 self.leds[self.defender_location] = color[0]
@@ -695,7 +695,7 @@ class Controller (threading.Thread):
             for player in self.game.players:
                 scores.append(player.get_score())
 
-        game_status = { 'Result': 'Status', 'State': self.state.name, 'Scores': scores, 'Queue': self.players_in_queue() }
+        game_status = { 'Result': 'Status', 'State': self.state.name, 'Scores': scores, 'Queue': self.players_in_queue(), 'CurrentRound': self.game.current_round }
         if DEBUG:
             print('game status = %s' % (game_status,))
 
@@ -771,7 +771,7 @@ class Controller (threading.Thread):
         if DEBUG:
             print("Entering standby while loop")
 
-        self.collision_effect(self.num_pixels/2, [0,0,255], [255,0,0], 1.0)
+        self.collision_effect(0, [0,0,255], [255,0,0], 1.0)
 
         standby_start_time = datetime.datetime.now();
         lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
