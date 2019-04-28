@@ -165,13 +165,9 @@ class Spectrum(Game):
         max_bytes = self.controller.num_pixels * self.controller.bytes_per_pixel
 
         # start new round or restart game when one players colors reach the other side
-        if self.attacker_location >= self.controller.num_pixels or self.defender_location < 0:
-            if self.current_round < self.max_rounds:
-                self.start_round()
-                return
-            else:
-                self.controller.restart_event.set()
-                return
+        if self.attacker_location >= max_bytes or self.defender_location < 0:
+            self.controller.restart_event.set()
+            return
 
         # when both attacker and defender reach the same location explode and start next round
         if self.attacker_location == self.defender_location:
