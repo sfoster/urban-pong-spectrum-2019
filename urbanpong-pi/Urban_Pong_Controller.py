@@ -732,7 +732,7 @@ class Controller (threading.Thread):
             fac = (math.sin(iterations/100)+1)/2
             pix3 = pix2*fac
 
-            pix4 = Colors.desaturate_clam(pix1 + pix3)
+            pix4 = Colors.desaturate_clamp(pix1 + pix3)
 
             for i in range(3):
                 lightstate[i] = pix4[i]
