@@ -135,7 +135,7 @@ class Spectrum(Game):
         self.current_round = 0
         self.leds = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
         self.controller.start_scene = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
-
+        self.controller.continue_event.set()
 
     def start_round(self):
         """
@@ -151,8 +151,8 @@ class Spectrum(Game):
         self.defender_colors = None
         self.attacker_location = self.attacker_start
         self.defender_location = self.defender_start
-        self.controller.state = Game_States.START
         self.current_round += 1
+        self.controller.start_event.set()
 
 
     def play(self):
@@ -164,7 +164,7 @@ class Spectrum(Game):
         # start new round or restart game when one players colors reach the other side
         if self.attacker_location >= self.controller.num_pixels or self.defender_location < 0:
             if self.current_round < self.max_rounds:
-                self.start_round( self.attacker, self.defender)
+                self.start_round()
                 return
             else:
                 self.controller.restart_event.set()
@@ -183,6 +183,8 @@ class Spectrum(Game):
         # start moving colors once an attacker or defender set their colors
         if self.attacker_colors is not None and self.attacker_location < self.controller.num_pixels:
             # move colors to attackers position
+            if DEBUG:
+                print("Moving attacker colors to %d" % self.attacker_location)
             for color in self.attacker_colors:
                 self.leds[self.attacker_location] = color[0]
                 self.leds[self.attacker_location+1] = color[1]
@@ -194,6 +196,8 @@ class Spectrum(Game):
                 self.attacker_location += 4
         if self.defender_colors is not None and self.defender_location >= 0:
             # move colors to defenders position
+            if DEBUG:
+                print("Moving defender colors to %d" % self.defender_colors)
             for color in self.defender_colors:
                 self.leds[self.defender_location] = color[0]
                 self.leds[self.defender_location+1] = color[1]
@@ -219,7 +223,6 @@ class Spectrum(Game):
         """
         self.initialize()
         self.controller.play_event.set()
-        self.controller.continue_event.set()
         self.controller.restart_event.clear()
         self.controller.add_players_to_game()
 
@@ -244,13 +247,13 @@ class Spectrum(Game):
         :return: None
         """
         if data['Action'] == 'pulse':
-            if data['UUID'] == self.attacker.UUID:
+            if data['UUID'] == self.attacker.uuid:
                 self.attacker_colors = data['Value']
             else:
                 self.defender_colors = data['Value']
 
         if self.attacker_colors is not None or self.defender_colors is not None:
-            self.controller.state = Game_States.PLAY
+            self.controller.play_event.set()
 
 
     def is_valid_uuid(self, uuid):
