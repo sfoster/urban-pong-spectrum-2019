@@ -164,6 +164,7 @@ class Spectrum(Game):
         :return: None
         """
 
+        self.leds = Colors.fill_array([0,0,0], self.controller.num_pixels, self.controller.bytes_per_pixel)
         max_bytes = self.controller.num_pixels * self.controller.bytes_per_pixel
 
         # start new round or restart game when one players colors reach the other side
@@ -172,7 +173,8 @@ class Spectrum(Game):
             return
 
         # when both attacker and defender reach the same location explode and start next round
-        if self.attacker_location == self.defender_location:
+        if (self.attacker_location >= self.defender_location):
+            self.current_round += 1
             self.leds[self.attacker_location] = Colors.white[0]
             self.leds[self.attacker_location+1] = Colors.white[1]
             self.leds[self.attacker_location+2] = Colors.white[2]
@@ -223,8 +225,10 @@ class Spectrum(Game):
         self.current_time = datetime.datetime.now()
         elapsed_time = self.current_time - self.controller.last_time
         if DEBUG:
-            print("velocity = %f, sleeping for %f seconds" % (self.controller.velocity, self.controller.velocity_delay))
-        sleep(self.controller.velocity_delay)
+            pass
+            # print("velocity = %f, sleeping for %f seconds" % (self.controller.velocity, self.controller.velocity_delay))
+        # sleep(self.controller.velocity_delay)
+        sleep(.03)
 
 
     def reset(self):
