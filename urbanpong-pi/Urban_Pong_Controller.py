@@ -717,9 +717,6 @@ class Controller (threading.Thread):
         standby_start_time = datetime.datetime.now();
         lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
 
-        pix1 = Vector(0, 7, 60)
-        pix2 = Vector(50, 80, 20)
-        iterations = 0
         while not self.start_event.is_set():
             elapsed_standby = datetime.datetime.now() - standby_start_time
             display_quantity = elapsed_standby.seconds
@@ -729,18 +726,9 @@ class Controller (threading.Thread):
                 for chan in range(self.bytes_per_pixel):
                     lightstate[pix*self.bytes_per_pixel + chan] = 6*bit # arbitrary brightness scaler
 
-            fac = (math.sin(iterations/100)+1)/2
-            pix3 = pix2*fac
-
-            pix4 = Colors.desaturate_clamp(pix1 + pix3)
-
-            for i in range(3):
-                lightstate[i] = pix4[i]
-
             self.lighting.update(lightstate)
             self.standby_event.wait(timeout=1)
             self.standby_event.clear()
-            iterations += 1
 
         if DEBUG:
             print("Exiting standby_effect")
