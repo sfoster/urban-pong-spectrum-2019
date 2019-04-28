@@ -250,7 +250,7 @@ class Spectrum(Game):
                 self.defender_colors = data['Value']
 
         if self.attacker_colors is not None or self.defender_colors is not None:
-            self.controller.state = Game_States.PLAY
+            self.controller.play_event.set()
 
 
     def is_valid_uuid(self, uuid):
