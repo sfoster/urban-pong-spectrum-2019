@@ -88,9 +88,9 @@ class Colors:
         excess /= 255
         color3_hsb = Colors.rgb_to_hsb(color)
         color3_hsb = [
-            max(color_hsb[0], 0),
+            min(color_hsb[0], 255),
             max(color_hsb[1] - excess, 0),
-            max(color_hsb[2], 0),
+            min(color_hsb[2], 255),
         ]
 
         return Colors.hsb_to_rgb(color_hsb)
