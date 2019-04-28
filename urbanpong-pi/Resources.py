@@ -79,8 +79,8 @@ class Colors:
         "Artistic" because brightness exceeding 255 is represented by desaturation.
         """
         excess = max(color) - 255
-        if (excess <= 0):
-            return color
+        # if (excess <= 0):
+        #     return color
 
         new_color = [0, 0, 0]
         for i in range(3):
@@ -89,12 +89,18 @@ class Colors:
         excess /= 255
         color_hsb = Colors.rgb_to_hsb(new_color)
         color_hsb = [
-            min(color_hsb[0], 255),
+            color_hsb[0],
             max(color_hsb[1] - excess, 0),
-            min(color_hsb[2], 255),
+            color_hsb[2],
         ]
 
-        return Colors.hsb_to_rgb(color_hsb)
+        color_rgb = Colors.hsb_to_rgb(color_hsb)
+
+        return [
+            min(max(int(color_rgb[0]), 0), 255),
+            min(max(int(color_rgb[1]), 0), 255),
+            min(max(int(color_rgb[2]), 0), 255),
+        ]
 
     @staticmethod
     def adjust_brightness(rgb, allowed_max):

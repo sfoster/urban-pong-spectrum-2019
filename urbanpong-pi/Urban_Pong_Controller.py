@@ -198,7 +198,7 @@ class Spectrum(Game):
         if self.defender_colors is not None and self.defender_location >= 0:
             # move colors to defenders position
             if DEBUG:
-                print("Moving defender colors to %d" % self.defender_colors)
+                # print("Moving defender colors to %d" % self.defender_colors)
                 print(self.defender_colors)
             for color in self.defender_colors:
                 self.leds[self.defender_location] = color[0]
@@ -695,15 +695,72 @@ class Controller (threading.Thread):
             for player in self.game.players:
                 scores.append(player.get_score())
 
-        game_status = { 'Result': 'Status', 'State': self.state.name, 'Scores': scores, 'Queue': self.players_in_queue() }
+        game_status = { 'Result': 'Status', 'State': self.state.name, 'Scores': scores, 'Queue': self.players_in_queue(), 'CurrentRound': self.game.current_round }
         if DEBUG:
             print('game status = %s' % (game_status,))
 
         return game_status
 
+    def collision_effect(self, collision_position, north_color, south_color, speed):
+        """
+        A colorful collision effect
+        :return: None
+        """
+
+        lightstate = Colors.fill_array(Colors.black, self.num_pixels, self.bytes_per_pixel)
+
+        def pulse(distance, radius):
+            if distance >= radius:
+                return 0
+            value = math.cos((math.pi*distance)/radius)+1
+            return value
+
+        nc = Vector(
+            north_color[0],
+            north_color[1],
+            north_color[2],
+        )
+        sc = Vector(
+            south_color[0],
+            south_color[1],
+            south_color[2],
+        )
+
+        # We're assuming 0 is at the north end
+        mix_factor = collision_position / self.num_pixels
+        new_color = (nc*(1-mix_factor)) + (sc*mix_factor)
+        print("new color", new_color)
+
+        tick = 0
+        anim_duration = 3.5
+        anim_start = datetime.datetime.now();
+        while True:
+            anim_elapsed = datetime.datetime.now() - anim_start
+            anim_fac = (anim_duration - (anim_elapsed.seconds + anim_elapsed.microseconds/1000000))/anim_duration
+            if (anim_fac <= 0):
+                break
+
+            for i in range(0, self.num_pixels):
+                distance = int(abs(i-collision_position))
+                # pixel_color = Colors.desaturate_clamp(new_color * pulse(distance, tick) * (((math.cos(distance**2)+1)/2) * ((math.sin(tick*.1)+1)/2)))
+                pixel_color = Colors.desaturate_clamp(new_color * pulse(distance, (1-anim_fac**3)*self.num_pixels*2) * anim_fac**3)
+
+                for j in range(self.bytes_per_pixel):
+                    if j < 3:
+                        lightstate[(i*self.bytes_per_pixel) + j] = pixel_color[j]
+                    else:
+                        lightstate[(i*self.bytes_per_pixel) + j] = 0
+
+
+            self.lighting.update(lightstate)
+            self.standby_event.wait(timeout=.01)
+            self.standby_event.clear()
+            tick += 1
+
+
     def standby_effect(self):
         """
-        Randomly turns a single single light
+        A simple binary clock which counts seconds since standby began
         :param lighting:
         :return: None
         """
@@ -714,12 +771,11 @@ class Controller (threading.Thread):
         if DEBUG:
             print("Entering standby while loop")
 
+        self.collision_effect(0, [0,0,255], [255,0,0], 1.0)
+
         standby_start_time = datetime.datetime.now();
         lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
 
-        pix1 = Vector(0, 7, 60)
-        pix2 = Vector(50, 80, 20)
-        iterations = 0
         while not self.start_event.is_set():
             elapsed_standby = datetime.datetime.now() - standby_start_time
             display_quantity = elapsed_standby.seconds
@@ -729,18 +785,9 @@ class Controller (threading.Thread):
                 for chan in range(self.bytes_per_pixel):
                     lightstate[pix*self.bytes_per_pixel + chan] = 6*bit # arbitrary brightness scaler
 
-            fac = (math.sin(iterations/100)+1)/2
-            pix3 = pix2*fac
-
-            pix4 = Colors.desaturate_clamp(pix1 + pix3)
-
-            for i in range(3):
-                lightstate[i] = pix4[i]
-
             self.lighting.update(lightstate)
             self.standby_event.wait(timeout=1)
             self.standby_event.clear()
-            iterations += 1
 
         if DEBUG:
             print("Exiting standby_effect")
