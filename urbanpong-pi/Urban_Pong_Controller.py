@@ -128,8 +128,6 @@ class Spectrum(Game):
         self.defender_start = self.controller.num_pixels
         self.max_rounds = 10
         self.controller.state = Game_States.INIT
-        self.attacker = None
-        self.defender = None
         self.attacker_colors = None
         self.defender_colors = None
         self.attacker_location = None
@@ -138,15 +136,16 @@ class Spectrum(Game):
         self.leds = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
 
 
-    def start_round(self, attacker, defender):
+    def start_round(self):
         """
         Actions to set game to START state. This will either occur after a round has completed or to start a
         new game with new players.
         :return: None
         """
-
-        self.attacker = attacker
-        self.defender = defender
+        if len(self.players) != 2:
+            return
+        self.attacker = self.players[0]
+        self.defender = self.players[1]
         self.attacker_colors = None
         self.defender_colors = None
         self.attacker_location = self.attacker_start
@@ -675,7 +674,6 @@ class Controller (threading.Thread):
             for player in self.game.players:
                 scores.append(player.get_score())
 
-        # TODO: this is pre player queue functionality. Eventually an actual queue will be implemented
         game_status = { 'Result': 'Status', 'State': self.state.name, 'Scores': scores, 'Queue': self.players_in_queue() }
         if DEBUG:
             print('game status = %s' % (game_status,))
@@ -797,9 +795,10 @@ class Controller (threading.Thread):
         :return: None
         """
         if len(self.south_queue) > 0 and len(self.north_queue) > 0:
-            attacker = self.north_queue.pop(0)
-            defender = self.south_queue.pop(0)
-            self.game.start_round(attacker, defender)
+            self.game.players = []
+            self.game.players.append(self.north_queue.pop(0))
+            self.game.players.append(self.south_queue.pop(0))
+            self.game.start_round()
 
     def move_color(self, color):
         """
