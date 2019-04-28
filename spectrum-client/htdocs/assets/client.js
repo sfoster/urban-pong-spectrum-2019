@@ -30,8 +30,6 @@ class Client {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(msg),
-    }).then(data => {
-      this.publishResponse('joined', msg, data);
     });
   }
   sendJoinMessage(player) {
