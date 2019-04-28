@@ -102,19 +102,20 @@ class Spectrum(Game):
     Two player game
     """
 
-    ATTACKER_START = 0
-    DEFENDER_START = self.controller.num_pixels
+    EXPLOSIVE_DELAY = 1.0 # leave white leds on to simulate an explosion
 
     def __init__(self, controller):
         Game.__init__(self, controller)
-        self.attacker_start = Spectrum.ATTACKER_START
-        self.defender_position = Spectrum.DEFENDER_START
+        self.attacker_start = 0
+        self.defender_start = self.controller.num_pixel
+        self.max_rounds = 10
         self.attacker = None
         self.defender = None
         self.attacker_colors = None
         self.defender_colors = None
         self.attacker_location = None
         self.defender_location = None
+        self.current_round = 0
         self.leds = None
 
     def initialize(self):
@@ -129,17 +130,25 @@ class Spectrum(Game):
         self.defender_colors = None
         self.attacker_location = None
         self.defender_location = None
+        self.current_round = 0
         self.leds = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
 
 
     def start_round(self, attacker, defender):
         """
-        Actions to reset game to START state
+        Actions to set game to START state. This will either occur after a round has completed or to start a
+        new game with new players.
         :return: None
         """
+
         self.attacker = attacker
         self.defender = defender
+        self.attacker_colors = None
+        self.defender_colors = None
+        self.attacker_location = self.attacker_start
+        self.defender_location = self.defender_start
         self.controller.state = Game_States.START
+        self.current_round += 1
 
 
     def play(self):
@@ -148,26 +157,65 @@ class Spectrum(Game):
         :return: None
         """
 
-        # start moving colors once an attacker or defender and set their colors
-        if self.attacker_colors is not None:
+        # start new round or restart game when one players colors reach the other side
+        if self.attacker_location >= self.controller.num_pixels or self.defender_location < 0:
+            if self.current_round < self.max_rounds:
+                self.start_round( self.attacker, self.defender)
+                return
+            else:
+                self.controller.restart_event.set()
+                return
+
+        # when both attacker and defender reach the same location explode and start next round
+        if self.attacker_location == self.defender_location:
+            self.leds[self.attacker_location] = Colors.white[0]
+            self.leds[self.attacker_location+1] = Colors.white[1]
+            self.leds[self.attacker_location+2] = Colors.white[2]
+            self.controller.lighting.update(self.leds)
+            sleep(Spectrum.EXPLOSIVE_DELAY)
+            self.controller.restart_event.set()
+            return
+
+        # start moving colors once an attacker or defender set their colors
+        if self.attacker_colors is not None and self.attacker_location < self.controller.num_pixels:
             # move colors to attackers position
             for color in self.attacker_colors:
-                self.leds[self.attacker_location] = self.attacker_colors[0]
-                self.leds[self.attacker_location+1] = self.attacker_colors[1]
-                self.leds[self.attacker_location+2] = self.attacker_colors[2]
-            if self.attacker_location > 0:
-                self.leds[self.attacker_location-4] = Colors.black[0]
-                self.leds[self.attacker_location-3] = Colors
+                self.leds[self.attacker_location] = color[0]
+                self.leds[self.attacker_location+1] = color[1]
+                self.leds[self.attacker_location+2] = color[2]
+                if self.attacker_location > 0:
+                    self.leds[self.attacker_location-4] = Colors.black[0]
+                    self.leds[self.attacker_location-3] = Colors.black[1]
+                    self.leds[self.attacker_location-2] = Colors.black[2]
+                self.attacker_location += 4
+        if self.defender_colors is not None and self.defender_location >= 0:
+            # move colors to defenders position
+            for color in self.defender_colors:
+                self.leds[self.defender_location] = color[0]
+                self.leds[self.defender_location+1] = color[1]
+                self.leds[self.defender_location+2] = color[2]
+                if self.attacker_location < self.controller.num_pixels - self.controller.num_pixels:
+                    self.leds[self.defender_location+4] = Colors.black[0]
+                    self.leds[self.defender_location+5] = Colors.black[1]
+                    self.leds[self.defender_location+6] = Colors.black[2]
+                self.defender_location -= 4
+        self.controller.lighting.update(self.leds)
 
+    def reset(self):
+        """
+        For this games reset is same as restart
+        :return: None
+        """
+        self.restart()
 
     def restart(self):
         """
         Sets up event objects and state variables to bring game back to the INIT state
         :return: None
         """
-        pass
-
-
+        self.initialize()
+        self.controller.play_event.set()
+        self.controller.continue_event.set()
 
     def terminate(self):
         """
@@ -568,7 +616,7 @@ class Controller (threading.Thread):
         self.lighting = None
 
         # the game
-        self.game = SinglePlayer(self)
+        self.game = Spectrum(self)
 
         # players queues
         self.timeout = 3 # seconds until player is removed from queue without receiving a request
@@ -594,8 +642,7 @@ class Controller (threading.Thread):
 
     def players_in_queue(self):
         """
-        Returns the number of players currently queue for game
-        TODO: until player queue is implemented this method returns 0 if game is open and 1 if currently playing
+        Returns the number of players currently queues for game
         :return:
         """
         num_players = len(self.south_queue) + len(self.north_queue)
@@ -812,7 +859,7 @@ class Controller (threading.Thread):
             if self.restart_event.is_set():
                 if DEBUG:
                     print("Re-initializing game")
-                self.game.initialize()
+                self.game.restart()
             else:
                 if DEBUG:
                     print("Resetting game")
