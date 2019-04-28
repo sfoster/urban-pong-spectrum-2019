@@ -220,6 +220,8 @@ class Spectrum(Game):
         self.initialize()
         self.controller.play_event.set()
         self.controller.continue_event.set()
+        self.controller.restart_event.clear()
+        self.controller.add_players_to_game()
 
     def terminate(self):
         """
@@ -623,9 +625,9 @@ class Controller (threading.Thread):
         self.game = Spectrum(self)
 
         # players queues
-        self.timeout = 3 # seconds until player is removed from queue without receiving a request
-        self.south_queue = dict()
-        self.north_queue = dict()
+        self.timeout = 3.0 # seconds until player is removed from queue without receiving a request
+        self.south_queue = list()
+        self.north_queue = list()
         self.queue_timer = None
 
     def check_queues(self):
@@ -634,14 +636,14 @@ class Controller (threading.Thread):
         :return: None
         """
         now = datetime.datetime.now()
-        for uuid in self.north_queue.keys():
-            delta = now - self.north_queue['uuid'].timestamp
-            if delta.total_seconds > self.timeout:
-                del self.north_queue['uuid']
-        for uuid in self.south_queue.keys():
-            delta = now - self.north_queue['uuid'].timestamp
+        for i, player in enumerate(self.north_queue):
+            delta = now - player.timestamp
             if delta.total_seconds() > self.timeout:
-                del self.south_queue['uuid']
+                self.north_queue.pop(i)
+        for i, player in enumerate(self.south_queue):
+            delta = now - player.timestamp
+            if delta.total_seconds() > self.timeout:
+                self.south_queue.pop(i)
 
 
     def players_in_queue(self):
@@ -774,9 +776,11 @@ class Controller (threading.Thread):
                 return { 'Result': 'error', 'Value': msg }
             new_player = Player(data['Name'], data['UUID'])
             if data['Value'] == 'north':
-                self.north_queue[data['UUID']] = new_player
+                self.north_queue.append(new_player)
             else:
-                self.south_queue[data['UUID']] = new_player
+                self.south_queue.append(new_player)
+            if self.state == Game_States.INIT:
+                self.add_players_to_game()
         else:
             # remaining actions handled by the game, but first check and update timestamp
             if data['UUID'] in self.north_queue:
@@ -786,6 +790,16 @@ class Controller (threading.Thread):
             self.game.action(data)
 
         return self.status()
+
+    def add_players_to_game(self):
+        """
+        Start a new game when we have players in both queues
+        :return: None
+        """
+        if len(self.south_queue) > 0 and len(self.north_queue) > 0:
+            attacker = self.north_queue.pop(0)
+            defender = self.south_queue.pop(0)
+            self.game.start_round(attacker, defender)
 
     def move_color(self, color):
         """
