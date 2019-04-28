@@ -51,9 +51,9 @@ class WaitingForOpponentScene extends Scene {
   }
   onPlayerstatus(event) {
     let data = event.detail;
-    console.log("Got status response message: ", data);
     if (data.State == "PLAY") {
       this.game.turnCount = data.CurrentRound;
+      console.log("onPlayerstatus, switching to play state: ", data);
       this.client.stopPollingForStatus();
       this.game.switchScene("colorpicker");
     }
@@ -63,10 +63,14 @@ class WaitingForOpponentScene extends Scene {
 class ColorPickerScene extends Scene {
   enter() {
     super.enter();
+    console.log("Enter ColorPickerScene");
     this.listen("playerstatus");
     this.currentRound = this.game.turnCount;
     this.client.pollForStatus(this.player);
-    console.log("Enter ColorPickerScene");
+    for (let btn of this.elem.querySelectorAll("button")) {
+      btn.disabled = false;
+    }
+    this.elem.classList.remove("waiting");
   }
   exit() {
     this.colorSent = null;
@@ -74,8 +78,8 @@ class ColorPickerScene extends Scene {
   }
   onPlayerstatus(event) {
     let data = event.detail;
-    console.log("Got status response message: ", data);
     if (this.colorSent && data) {
+      console.log("onPlayerstatus, colorSent and got: ", data);
       this.game.turnCount = data.CurrentRound;
       // the server increments its CurrentRound when both north/south pulses are received and handles
       // switch to gameover when we complete the last round
@@ -85,6 +89,7 @@ class ColorPickerScene extends Scene {
       }
       if (data.CurrentRound > this.currentRound) {
         this.client.stopPollingForStatus();
+        // switch to waiting scene briefly so we can re-enter this scene
         this.game.switchScene("waiting");
         setTimeout(() => {
           this.game.switchScene("colorpicker");
@@ -96,8 +101,15 @@ class ColorPickerScene extends Scene {
     if (!this.colorSent) {
       this.colorSent = rgb;
       this.client.sendPulseMessage(this.player, [rgb, rgb, rgb, rgb, rgb, rgb]);
-      game.switchScene("waiting");
+      // wait for the status message that says the round is incremented
+      this.waitForTurnEnd();
     }
+  }
+  waitForTurnEnd() {
+    for (let btn of this.elem.querySelectorAll("button")) {
+      btn.disabled = true;
+    }
+    this.elem.classList.add("waiting");
   }
 }
 

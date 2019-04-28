@@ -22,7 +22,6 @@ class Client {
     msg.UUID = this.player.id;
     msg.Name = position[0].toUpperCase() + position.substring(1);
 
-    console.log("sendGameMessage:", msg);
     return fetch(this.message_endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -37,7 +36,7 @@ class Client {
       'Action': 'join',
       'Value': position
     };
-      // this.publishResponse('clientjoined', msg, data);
+    console.log("sendJoinMessage:", msg, position);
     return this.sendGameMessage(msg, position)
     .then(data => {
       console.log(data);
@@ -45,7 +44,7 @@ class Client {
     })
     .catch(error => {
       console.error(error);
-      return data;
+      return error;
     });
   }
 
@@ -79,6 +78,7 @@ class Client {
         [255,0,0],
       ],
     };
+    console.log("sendPulseMessage:", msg, position);
     return this.sendGameMessage(msg, position)
     .then(data => {
       console.log(data);
@@ -90,12 +90,14 @@ class Client {
     });
   }
   stopPollingForStatus() {
+    console.log("stopPollingForStatus");
     if (this.pollingTimer) {
       clearInterval(this.pollingTimer);
       this.pollingTimer = null;
     }
   }
   pollForStatus(player) {
+    console.log("pollForStatus:", player);
     this.stopPollingForStatus();
     this.pollingTimer = setInterval(function() {
       this.sendStatusMessage(player).then(resp => {
