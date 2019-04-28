@@ -107,7 +107,7 @@ class Spectrum(Game):
     def __init__(self, controller):
         Game.__init__(self, controller)
         self.attacker_start = 0
-        self.defender_start = self.controller.num_pixel
+        self.defender_start = self.controller.num_pixels
         self.max_rounds = 10
         self.attacker = None
         self.defender = None
