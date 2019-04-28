@@ -52,7 +52,8 @@ class WaitingForOpponentScene extends Scene {
   onPlayerstatus(event) {
     let data = event.detail;
     console.log("Got status response message: ", data);
-    if (data.Scores && data.Scores.length == 2) {
+    if (data.State == "PLAY") {
+      this.game.turnCount = data.CurrentRound;
       this.client.stopPollingForStatus();
       this.game.switchScene("colorpicker");
     }
@@ -63,7 +64,7 @@ class ColorPickerScene extends Scene {
   enter() {
     super.enter();
     this.listen("playerstatus");
-    this.game.turnCount++;
+    this.currentRound = this.game.turnCount;
     this.client.pollForStatus(this.player);
     console.log("Enter ColorPickerScene");
   }
@@ -75,17 +76,20 @@ class ColorPickerScene extends Scene {
     let data = event.detail;
     console.log("Got status response message: ", data);
     if (this.colorSent && data) {
-      // TODO: check the response to see what to do
-      this.client.stopPollingForStatus();
-      this.game.switchScene("waiting");
-      // re-enter this scene
-      setTimeout(() => {
-        if (this.game.turnCount >= this.game.maxTurns) {
-          this.game.switchScene("gameover");
-        } else {
+      this.game.turnCount = data.CurrentRound;
+      // the server increments its CurrentRound when both north/south pulses are received and handles
+      // switch to gameover when we complete the last round
+      if (data.CurrentRound >= this.game.maxTurns) {
+        this.game.switchScene("gameover");
+        return;
+      }
+      if (data.CurrentRound > this.currentRound) {
+        this.client.stopPollingForStatus();
+        this.game.switchScene("waiting");
+        setTimeout(() => {
           this.game.switchScene("colorpicker");
-        }
-      }, 500);
+        }, 50);
+      }
     }
   }
   sendColor(rgb) {
