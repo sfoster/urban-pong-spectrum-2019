@@ -54,7 +54,7 @@ class Client {
       'Value': '',
     };
     return this.sendGameMessage(msg, position)
-    .then(data => this.handleStatusResponse(data))
+    .then(data => console.log(data))
     .catch(error => console.error(error));
   }
 
@@ -75,16 +75,18 @@ class Client {
     .then(data => console.log("response: ", data))
     .catch(error => console.error(error));
   }
-  toggleStatusPolling(player) {
-    let position = player.position;
+  stopPollingForStatus() {
     if (this.pollingTimer) {
       clearInterval(this.pollingTimer);
       this.pollingTimer = null;
-    } else {
-      this.pollingTimer = setInterval(function() {
-        this.sendStatusMessage(player);
-      }.bind(this), 1000);
     }
   }
+  pollForStatus(player) {
+    this.stopPollingForStatus();
+    this.pollingTimer = setInterval(function() {
+      this.sendStatusMessage(player).then(resp => {
+        this.publishResponse('status', resp);
+      });
+    }.bind(this), 1000);
+  }
 }
-

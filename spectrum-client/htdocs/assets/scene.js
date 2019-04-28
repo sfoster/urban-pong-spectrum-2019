@@ -1,8 +1,14 @@
 class Scene {
   constructor(elem, options={}) {
     this.elem = elem;
-    this.elem.id = 'scene-'+options.id;
-    this.options = Object.assign({}, options);
+    this.id = this.elem.dataset.id = options.id;
+    this.client = options.client;
+    delete options.client;
+    this.game = options.game;
+    delete options.game;
+    this.player = options.player;
+    delete options.player;
+    this.options = options;
     this._topics = new Set();
   }
   listen(name) {
@@ -19,8 +25,8 @@ class Scene {
   enter() {
     this.elem.addEventListener("click", this);
     this.elem.classList.remove("hidden");
-    document.body.dataset.scene = this.options.id;
-    console.log("Entering scene: ", this.options.id, this);
+    document.body.dataset.scene = this.id;
+    console.log("Entering scene: ", this.id, this);
   }
   exit() {
     for (let topic of this._topics){
@@ -36,16 +42,69 @@ class Scene {
   }
 }
 
+class WaitingForOpponentScene extends Scene {
+  enter() {
+    super.enter();
+    this.listen("status");
+    this.client.pollForStatus(this.player);
+    console.log("Enter WaitingForOpponentScene");
+  }
+  onStatus(resp) {
+    console.log("Got status response message: ", resp);
+    if (resp) {
+      this.client.stopPollingForStatus();
+    }
+  }
+}
+
+class ColorPickerScene extends Scene {
+  enter() {
+    super.enter();
+    this.listen("status");
+    this.game.turnCount++;
+    this.client.pollForStatus(this.player);
+    console.log("Enter ColorPickerScene");
+  }
+  exit() {
+    this.colorSent = null;
+    super.exit();
+  }
+  onStatus(resp) {
+    console.log("Got status response message: ", resp);
+    if (this.colorSent && resp) {
+      // TODO: check the response to see what to do
+      this.client.stopPollingForStatus();
+      this.game.switchScene("waiting");
+      // re-enter this scene
+      setTimeout(() => {
+        if (this.game.turnCount >= this.game.maxTurns) {
+          this.game.switchScene("gameover");
+        } else {
+          this.game.switchScene("colorpicker");
+        }
+      }, 500);
+    }
+  }
+  sendColor(rgb) {
+    if (!this.colorSent) {
+      this.colorSent = rgb;
+      this.client.sendPulseMessage(this.player, [rgb, rgb, rgb, rgb, rgb, rgb]);
+      game.switchScene("waiting");
+    }
+  }
+}
+
 class WelcomeScene extends Scene {
   enter() {
     super.enter();
     console.log("Enter WelcomeScene");
   }
   playAs(position) {
-    let game = this.options.game;
+    let game = this.game;
+    let client = this.client;
     game.player.position = position;
-    game.client = new Client(game.player, {});
-    game.client.sendJoinMessage(game.player).then(resp => {
+
+    client.sendJoinMessage(game.player).then(resp => {
       console.log("Got join response: ", resp);
       game.switchScene("waiting");
     });

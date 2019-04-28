@@ -1,34 +1,41 @@
 window.onload = function() {
   const game = window.game = new Game();
-  game.player = {
+  const player = game.player = {
     id: uuidv4(),
   };
-  let scene;
-  scene = new WelcomeScene(document.getElementById("welcome"), {
-    id: "welcome",
-    game
-  });
-  game.registerScene("welcome", scene);
+  const client =  game.client = new Client(player, {});
+  const options = {
+    game, player, client
+  }
+  game.registerScene(
+    "welcome",
+    new WelcomeScene(document.getElementById("welcome"),
+                     Object.assign({}, options, { id: "welcome" }))
+  );
 
-  scene = new Scene(document.getElementById("waiting"), {
-    id: "waiting",
-    game
-  });
-  game.registerScene("waiting", scene);
+  game.registerScene(
+    "waitingforopponent",
+    new WaitingForOpponentScene(document.getElementById("waitingforopponent"),
+                                Object.assign({}, options, { id: "waitingforopponent" }))
+  );
 
-  scene = new Scene(document.getElementById("colorpicker"), {
-    id: "colorpicker",
-    game
-  });
-  game.registerScene("colorpicker", scene);
+  game.registerScene(
+    "waiting",
+    new Scene(document.getElementById("waiting"),
+              Object.assign({}, options, { id: "waiting" }))
+  );
 
-  scene = new Scene(document.getElementById("gameover"), {
-    id: "gameover",
-    game
-  });
-  game.registerScene("gameover", scene);
+  game.registerScene(
+    "colorpicker",
+    new ColorPickerScene(document.getElementById("colorpicker"),
+              Object.assign({}, options, { id: "colorpicker" }))
+  );
 
-  game.start();
+  game.registerScene(
+    "gameover",
+    new Scene(document.getElementById("gameover"),
+              Object.assign({}, options, { id: "gameover" }))
+  );
 };
 
 function getPositionForButton(btn) {
