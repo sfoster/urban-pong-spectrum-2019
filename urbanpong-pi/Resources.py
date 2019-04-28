@@ -82,12 +82,13 @@ class Colors:
         if (excess <= 0):
             return color
 
+        new_color = [0, 0, 0]
         for i in range(3):
-            color[i] = min(color[i], 255)
+            new_color[i] = min(color[i], 255)
 
         excess /= 255
-        color3_hsb = Colors.rgb_to_hsb(color)
-        color3_hsb = [
+        color_hsb = Colors.rgb_to_hsb(new_color)
+        color_hsb = [
             min(color_hsb[0], 255),
             max(color_hsb[1] - excess, 0),
             min(color_hsb[2], 255),
