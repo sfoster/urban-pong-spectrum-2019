@@ -46,11 +46,41 @@ function sendGameMessage(msg, position) {
   // .then(response => response.json());
 }
 
+let timers = {
+  "north": null,
+  "south": null
+};
+
+function toggleStatusPolling(btn) {
+  let position = getPositionForButton(btn);
+  let timer = timers[position];
+  if (timer) {
+    clearInterval(timer);
+    timers[position] = null;
+    btn.classList.toggle("polling", false);
+  } else {
+    timers[position] = setInterval(function() {
+      sendStatusMessage(btn);
+    }, 1000);
+    btn.classList.toggle("polling", true);
+  }
+}
+
 function sendJoinMessage(btn) {
   let msg = Object.assign({}, message_template);
   let position = getPositionForButton(btn);
   msg.Action = 'join';
   msg.Value = client.position;
+  sendGameMessage(msg, position)
+  .then(data => console.log("response: ", data))
+  .catch(error => console.error(error));
+}
+
+function sendStatusMessage(btn) {
+  let msg = Object.assign({}, message_template);
+  let position = getPositionForButton(btn);
+  msg.Action = 'status';
+  msg.Value = '';
   sendGameMessage(msg, position)
   .then(data => console.log("response: ", data))
   .catch(error => console.error(error));

@@ -11,7 +11,7 @@
     KillMode=process
     SyslogIdentifier=urban_pong
     Environment=PYTHONPATH=/home/kerndtr/lib/python3.5/site-packages
-    ExecStart=/usr/bin/python3 /home/kerndtr/work/Urban_Pong.py
+    ExecStart=/usr/bin/python3 /home/kerndtr/urban-pong-spectrum-2019/urbanpong-pi
 
 [Install]
     WantedBy=multi-user.target
