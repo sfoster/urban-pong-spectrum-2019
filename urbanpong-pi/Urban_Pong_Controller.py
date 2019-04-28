@@ -519,13 +519,19 @@ class Controller (threading.Thread):
             print("Entering standby while loop")
         while not self.start_event.is_set():
             light_on = random.randrange(10) # light on for 0-30 seconds
-            light_off = 0.5 # light off for 0-30 seconds
             transition = random.randrange(2, 5) # light color change transition time
             light_number = random.randrange(self.num_pixels)
-            self.lighting.fade(light_number, self.standby_color, transition)
+            pixel = light_number * self.bytes_per_pixel
+            lights_off[pixel] = Colors.blue[0]
+            lights_off[pixel+1] = Colors.blue[1]
+            lights_off[pixel+2] = Colors.blue[2]
+            self.lighting.update(lights_off)
             sleep_time = float(light_on + transition)
             self.standby_event.wait(timeout=sleep_time)
-            self.lighting.fade(light_number, Colors.black, 0)
+            lights_off[pixel] = Colors.black[0]
+            lights_off[pixel+1] = Colors.black[1]
+            lights_off[pixel+2] = Colors.black[2]
+            self.lighting.update(lights_off)
             self.standby_event.clear()
 
         if DEBUG:

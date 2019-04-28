@@ -4,10 +4,37 @@
     <meta charset="utf-8">
   </head>
   <body>
-    Test client messages
-    <div id="buttons">
-      <button id="join">Join</button>
-    </div>
-    <script src="client.js"></script>
+  <header>
+    <h1>Test client messages</h1>
+  </header>
+  <section id="north" data-position="north">
+      <h2>North</h2>
+      <ul>
+        <li>
+          <button onclick="sendJoinMessage(this)">Join (North)</button>
+        </li>
+        <li>
+          <button onclick="sendStatusMessage(this)">Status (North)</button>
+        </li>
+        <li>
+          <button onclick="sendPulseMessage(this)">Send pulse (North)</button>
+        </li>
+      </ul>
+  </section>
+  <section id="south" data-position="south">
+      <h2>South</h2>
+      <ul>
+        <li>
+          <button onclick="sendJoinMessage(this)">Join (South)</button>
+        </li>
+        <li>
+          <button onclick="sendStatusMessage(this)">Status (South)</button>
+        </li>
+        <li>
+          <button onclick="sendPulseMessage(this)">Send pulse (South)</button>
+        </li>
+      </ul>
+  </section>
+  <script src="client.js"></script>
   </body>
 </html>
