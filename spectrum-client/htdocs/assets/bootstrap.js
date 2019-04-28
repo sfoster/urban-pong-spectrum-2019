@@ -27,7 +27,7 @@ window.onload = function() {
 
   game.registerScene(
     "colorpicker",
-    new Scene(document.getElementById("colorpicker"),
+    new ColorPickerScene(document.getElementById("colorpicker"),
               Object.assign({}, options, { id: "colorpicker" }))
   );
 
@@ -36,8 +36,6 @@ window.onload = function() {
     new Scene(document.getElementById("gameover"),
               Object.assign({}, options, { id: "gameover" }))
   );
-
-  game.start();
 };
 
 function getPositionForButton(btn) {

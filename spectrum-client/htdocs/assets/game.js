@@ -1,7 +1,7 @@
 class Game {
   constructor(elem, options) {
     this.turnCount = 0;
-    this.maxTurns = 2;
+    this.maxTurns = 5;
     this.scenes = {};
     this.currentScene = null;
     this.player = {};
@@ -28,6 +28,7 @@ class Game {
     this.currentScene.enter();
   }
   start() {
+    // auto-mode to cycle through the states
     game.switchScene("welcome");
     // loading screen is the initial scene
     // send join request
@@ -36,8 +37,6 @@ class Game {
       this.player.position = "north";
       this.enterLobby();
     }.bind(this), 2000);
-  }
-  handleEvent() {
   }
   enterLobby() {
     console.log("enterLobby");
