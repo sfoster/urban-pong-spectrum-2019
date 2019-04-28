@@ -729,19 +729,19 @@ class Controller (threading.Thread):
                     lightstate[pix*self.bytes_per_pixel + chan] = 6*bit # arbitrary brightness scaler
 
             fac = (math.sin(iterations/100)+1)/2
-            import pdb; pdb.set_trace();
-            pix3 = (
-                pix2[0]*fac,
-                pix2[1]*fac,
-                pix2[2]*fac,
-            )
-            pix4 = Colors.artistic_additive_blend(pix1, pix3)
+            # import pdb; pdb.set_trace();
+            # pix3 = [
+            #     pix2[0]*fac,
+            #     pix2[1]*fac,
+            #     pix2[2]*fac,
+            # ]
+            pix4 = Colors.artistic_additive_blend(pix1, pix2)
 
             for i in range(self.bytes_per_pixel):
                 lightstate[i] = pix4[i]
 
             self.lighting.update(lightstate)
-            self.standby_event.wait(timeout=.1)
+            self.standby_event.wait(timeout=1)
             self.standby_event.clear()
             iterations += 1
 
