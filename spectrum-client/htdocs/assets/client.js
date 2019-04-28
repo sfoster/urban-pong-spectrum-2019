@@ -12,12 +12,9 @@ class Client {
     this.pollingTimer;
     this.player = player;
   }
-  publishResponse(topic, msg, data) {
-    let event = new CustomEvent('gameclient'+topic, {
-      detail: {
-        msg,
-        data
-      }
+  publishResponse(topic, data) {
+    let event = new CustomEvent('player'+topic, {
+      detail: data
     });
     document.dispatchEvent(event);
   }

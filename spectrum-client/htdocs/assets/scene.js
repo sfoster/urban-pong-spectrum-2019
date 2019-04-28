@@ -45,14 +45,15 @@ class Scene {
 class WaitingForOpponentScene extends Scene {
   enter() {
     super.enter();
-    this.listen("status");
+    this.listen("playerstatus");
     this.client.pollForStatus(this.player);
     console.log("Enter WaitingForOpponentScene");
   }
-  onStatus(resp) {
-    console.log("Got status response message: ", resp);
-    if (resp) {
+  onPlayerstatus(data) {
+    console.log("Got status response message: ", data);
+    if (data.Scores && data.Scores.length == 2) {
       this.client.stopPollingForStatus();
+      this.game.switchScene("colorpicker");
     }
   }
 }
@@ -60,7 +61,7 @@ class WaitingForOpponentScene extends Scene {
 class ColorPickerScene extends Scene {
   enter() {
     super.enter();
-    this.listen("status");
+    this.listen("playerstatus");
     this.game.turnCount++;
     this.client.pollForStatus(this.player);
     console.log("Enter ColorPickerScene");
@@ -69,9 +70,9 @@ class ColorPickerScene extends Scene {
     this.colorSent = null;
     super.exit();
   }
-  onStatus(resp) {
-    console.log("Got status response message: ", resp);
-    if (this.colorSent && resp) {
+  onPlayerstatus(data) {
+    console.log("Got status response message: ", data);
+    if (this.colorSent && data) {
       // TODO: check the response to see what to do
       this.client.stopPollingForStatus();
       this.game.switchScene("waiting");
