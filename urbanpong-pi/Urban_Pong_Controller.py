@@ -706,7 +706,7 @@ class Controller (threading.Thread):
             elapsed_standby = datetime.datetime.now() - standby_start_time
 
             binary_clockstate = bin(elapsed_standby.seconds)
-            lightstate = fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
+            lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
 
             binary_lightstate = (lightstate & binary_clockstate)
 
