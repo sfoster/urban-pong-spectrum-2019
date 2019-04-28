@@ -52,7 +52,7 @@ class WaitingForOpponentScene extends Scene {
   onPlayerstatus(event) {
     let data = event.detail;
     console.log("Got status response message: ", data);
-    if (data.CurrentRound) {
+    if (data.State == "PLAY") {
       this.game.turnCount = data.CurrentRound;
       this.client.stopPollingForStatus();
       this.game.switchScene("colorpicker");
