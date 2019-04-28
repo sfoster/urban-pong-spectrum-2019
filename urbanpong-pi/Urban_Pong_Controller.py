@@ -183,6 +183,8 @@ class Spectrum(Game):
         # start moving colors once an attacker or defender set their colors
         if self.attacker_colors is not None and self.attacker_location < self.controller.num_pixels:
             # move colors to attackers position
+            if DEBUG:
+                print("Moving attacker colors to %d" % self.attacker_location)
             for color in self.attacker_colors:
                 self.leds[self.attacker_location] = color[0]
                 self.leds[self.attacker_location+1] = color[1]
@@ -194,6 +196,8 @@ class Spectrum(Game):
                 self.attacker_location += 4
         if self.defender_colors is not None and self.defender_location >= 0:
             # move colors to defenders position
+            if DEBUG:
+                print("Moving defender colors to %d" % self.defender_colors)
             for color in self.defender_colors:
                 self.leds[self.defender_location] = color[0]
                 self.leds[self.defender_location+1] = color[1]
