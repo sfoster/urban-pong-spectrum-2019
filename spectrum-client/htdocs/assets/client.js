@@ -42,8 +42,14 @@ class Client {
     };
       // this.publishResponse('clientjoined', msg, data);
     return this.sendGameMessage(msg, position)
-    .then(data => console.log(data))
-    .catch(error => console.error(error));
+    .then(data => {
+      console.log(data);
+      return data;
+    })
+    .catch(error => {
+      console.error(error);
+      return data;
+    });
   }
 
   sendStatusMessage(player) {
@@ -53,8 +59,14 @@ class Client {
       'Value': '',
     };
     return this.sendGameMessage(msg, position)
-    .then(data => console.log(data))
-    .catch(error => console.error(error));
+    .then(data => {
+      console.log(data);
+      return data;
+    })
+    .catch(error => {
+      console.error(error);
+      return data;
+    });
   }
 
   sendPulseMessage(player, colorValues) {
@@ -71,8 +83,14 @@ class Client {
       ],
     };
     return this.sendGameMessage(msg, position)
-    .then(data => console.log("response: ", data))
-    .catch(error => console.error(error));
+    .then(data => {
+      console.log(data);
+      return data;
+    })
+    .catch(error => {
+      console.error(error);
+      return data;
+    });
   }
   stopPollingForStatus() {
     if (this.pollingTimer) {
