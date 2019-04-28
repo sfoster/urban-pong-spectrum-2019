@@ -776,7 +776,7 @@ class Controller (threading.Thread):
             return { 'Result': 'error', 'Value': msg }
 
         # handle player queue actions here
-        if data['Action'] == 'Join':
+        if data['Action'] == 'join':
             if data['Value'] not in ['north', 'south']:
                 msg = "Players can only join north or south side."
                 return { 'Result': 'error', 'Value': msg }
