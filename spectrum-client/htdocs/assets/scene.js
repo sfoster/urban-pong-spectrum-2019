@@ -40,13 +40,6 @@ class WelcomeScene extends Scene {
   enter() {
     super.enter();
     console.log("Enter WelcomeScene");
-    let game = this.options.game;
-    if (!game.player) {
-      const player = game.player = {
-        id: uuidv4(),
-        // position: 'north'|'south'
-      };
-    }
   }
   playAs(position) {
     let game = this.options.game;

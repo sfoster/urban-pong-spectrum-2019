@@ -1,5 +1,8 @@
 window.onload = function() {
   const game = window.game = new Game();
+  game.player = {
+    id: uuidv4(),
+  };
   let scene;
   scene = new WelcomeScene(document.getElementById("welcome"), {
     id: "welcome",
