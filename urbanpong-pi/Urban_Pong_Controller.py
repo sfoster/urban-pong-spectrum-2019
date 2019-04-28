@@ -135,7 +135,7 @@ class Spectrum(Game):
         self.current_round = 0
         self.leds = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
         self.controller.start_scene = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
-
+        self.controller.continue_event.set()
 
     def start_round(self):
         """
@@ -219,7 +219,6 @@ class Spectrum(Game):
         """
         self.initialize()
         self.controller.play_event.set()
-        self.controller.continue_event.set()
         self.controller.restart_event.clear()
         self.controller.add_players_to_game()
 
