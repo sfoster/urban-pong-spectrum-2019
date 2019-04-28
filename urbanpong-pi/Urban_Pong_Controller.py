@@ -164,7 +164,7 @@ class Spectrum(Game):
         # start new round or restart game when one players colors reach the other side
         if self.attacker_location >= self.controller.num_pixels or self.defender_location < 0:
             if self.current_round < self.max_rounds:
-                self.start_round( self.attacker, self.defender)
+                self.start_round()
                 return
             else:
                 self.controller.restart_event.set()
