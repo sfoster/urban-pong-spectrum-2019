@@ -53,6 +53,7 @@ class WelcomeScene extends Scene {
     game.player.position = position;
     game.client = new Client(game.player, {});
     this.listen('clientjoined');
+    game.client.sendJoinMessage(game.player);
   }
   onClientjoined(event) {
     this.options.game.switchScene("waiting");
