@@ -703,7 +703,7 @@ class Controller (threading.Thread):
 
     def standby_effect(self):
         """
-        Randomly turns a single single light
+        A simple binary clock which counts seconds since standby began
         :param lighting:
         :return: None
         """
