@@ -244,7 +244,7 @@ class Spectrum(Game):
         :return: None
         """
         if data['Action'] == 'pulse':
-            if data['UUID'] == self.attacker.UUID:
+            if data['UUID'] == self.attacker.uuid:
                 self.attacker_colors = data['Value']
             else:
                 self.defender_colors = data['Value']
