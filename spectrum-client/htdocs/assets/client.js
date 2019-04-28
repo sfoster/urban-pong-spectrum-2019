@@ -12,12 +12,9 @@ class Client {
     this.pollingTimer;
     this.player = player;
   }
-  publishResponse(topic, msg, data) {
-    let event = new CustomEvent('gameclient'+topic, {
-      detail: {
-        msg,
-        data
-      }
+  publishResponse(topic, data) {
+    let event = new CustomEvent('player'+topic, {
+      detail: data
     });
     document.dispatchEvent(event);
   }
@@ -30,8 +27,8 @@ class Client {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(msg),
-    }).then(data => {
-      this.publishResponse('joined', msg, data);
+    }).then(resp => {
+      return resp.json();
     });
   }
   sendJoinMessage(player) {
@@ -40,11 +37,16 @@ class Client {
       'Action': 'join',
       'Value': position
     };
+      // this.publishResponse('clientjoined', msg, data);
     return this.sendGameMessage(msg, position)
     .then(data => {
-      this.publishResponse('clientjoined', msg, data);
+      console.log(data);
+      return data;
     })
-    .catch(error => console.error(error));
+    .catch(error => {
+      console.error(error);
+      return data;
+    });
   }
 
   sendStatusMessage(player) {
@@ -54,8 +56,14 @@ class Client {
       'Value': '',
     };
     return this.sendGameMessage(msg, position)
-    .then(data => console.log(data))
-    .catch(error => console.error(error));
+    .then(data => {
+      console.log(data);
+      return data;
+    })
+    .catch(error => {
+      console.error(error);
+      return data;
+    });
   }
 
   sendPulseMessage(player, colorValues) {
@@ -72,8 +80,14 @@ class Client {
       ],
     };
     return this.sendGameMessage(msg, position)
-    .then(data => console.log("response: ", data))
-    .catch(error => console.error(error));
+    .then(data => {
+      console.log(data);
+      return data;
+    })
+    .catch(error => {
+      console.error(error);
+      return data;
+    });
   }
   stopPollingForStatus() {
     if (this.pollingTimer) {

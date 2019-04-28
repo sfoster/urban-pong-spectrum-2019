@@ -33,7 +33,7 @@ window.onload = function() {
 
   game.registerScene(
     "gameover",
-    new Scene(document.getElementById("gameover"),
+    new GameOverScene(document.getElementById("gameover"),
               Object.assign({}, options, { id: "gameover" }))
   );
 };

@@ -43,3 +43,10 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 #gameover {
   background-color: orange;
 }
+#gameover .colortile {
+  display: inline-block;
+  width: calc(33.3% - 4px);
+  height: 20vh;
+  border: 1px solid black;
+  margin: 1px;
+}

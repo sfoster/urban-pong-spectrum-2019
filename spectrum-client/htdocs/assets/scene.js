@@ -45,14 +45,16 @@ class Scene {
 class WaitingForOpponentScene extends Scene {
   enter() {
     super.enter();
-    this.listen("status");
+    this.listen("playerstatus");
     this.client.pollForStatus(this.player);
     console.log("Enter WaitingForOpponentScene");
   }
-  onStatus(resp) {
-    console.log("Got status response message: ", resp);
-    if (resp) {
+  onPlayerstatus(event) {
+    let data = event.detail;
+    console.log("Got status response message: ", data);
+    if (data.Scores && data.Scores.length == 2) {
       this.client.stopPollingForStatus();
+      this.game.switchScene("colorpicker");
     }
   }
 }
@@ -60,7 +62,7 @@ class WaitingForOpponentScene extends Scene {
 class ColorPickerScene extends Scene {
   enter() {
     super.enter();
-    this.listen("status");
+    this.listen("playerstatus");
     this.game.turnCount++;
     this.client.pollForStatus(this.player);
     console.log("Enter ColorPickerScene");
@@ -69,9 +71,10 @@ class ColorPickerScene extends Scene {
     this.colorSent = null;
     super.exit();
   }
-  onStatus(resp) {
-    console.log("Got status response message: ", resp);
-    if (this.colorSent && resp) {
+  onPlayerstatus(event) {
+    let data = event.detail;
+    console.log("Got status response message: ", data);
+    if (this.colorSent && data) {
       // TODO: check the response to see what to do
       this.client.stopPollingForStatus();
       this.game.switchScene("waiting");
@@ -106,7 +109,26 @@ class WelcomeScene extends Scene {
 
     client.sendJoinMessage(game.player).then(resp => {
       console.log("Got join response: ", resp);
-      game.switchScene("waiting");
+      game.switchScene("waitingforopponent");
     });
+  }
+}
+
+class GameOverScene extends Scene {
+  enter() {
+    super.enter();
+    console.log("Enter GameOverScene");
+  }
+  renderResult(colors) {
+    let container = document.getElementById("tiles");
+    container.innerHTML = "";
+    let frag = document.createDocumentFragment();
+    for (let rgb of colors) {
+      let tile = document.createElement("div");
+      tile.classList.add("colortile");
+      tile.style.backgroundColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+      frag.appendChild(tile);
+    }
+    container.appendChild(frag);
   }
 }
