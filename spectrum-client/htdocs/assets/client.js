@@ -44,7 +44,7 @@ class Client {
     })
     .catch(error => {
       console.error(error);
-      return data;
+      return error;
     });
   }
 
