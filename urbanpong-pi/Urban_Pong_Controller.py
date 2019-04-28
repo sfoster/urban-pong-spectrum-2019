@@ -175,11 +175,12 @@ class Spectrum(Game):
         # when both attacker and defender reach the same location explode and start next round
         if (self.attacker_location >= self.defender_location):
             self.current_round += 1
-            self.leds[self.attacker_location] = Colors.white[0]
-            self.leds[self.attacker_location+1] = Colors.white[1]
-            self.leds[self.attacker_location+2] = Colors.white[2]
+            if self.attacker_location == self.defender_location:
+                self.controller.collision_effect(self.attacker_location,
+                                                 self.attacker_colors[0],
+                                                 self.defender_colors[0],
+                                                 1.0);
             self.controller.lighting.update(self.leds)
-            sleep(Spectrum.EXPLOSIVE_DELAY)
             self.controller.restart_event.set()
             return
 
