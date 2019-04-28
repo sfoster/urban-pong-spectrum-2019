@@ -5,6 +5,15 @@ var message_template = {
   'Value': null,
 }
 
+
+function Client() {
+  this.position = null;
+  this.uuid = uuidv4();
+}
+
+// most of the functions here probably more sense as methods of Client, but whatever
+var client = new Client();
+
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -25,8 +34,8 @@ function getPositionForButton(btn) {
 }
 
 function sendGameMessage(msg, position) {
-  msg.UUID = playerId[position];
-  msg.Name = position[0].toUpperCase() + position.substring(1);
+  msg.UUID = client.uuid;
+  msg.Name = "a client";
 
   console.log("sendGameMessage:", msg);
   return fetch(message_endpoint, {
@@ -41,7 +50,7 @@ function sendJoinMessage(btn) {
   let msg = Object.assign({}, message_template);
   let position = getPositionForButton(btn);
   msg.Action = 'join';
-  msg.Value = position;
+  msg.Value = client.position;
   sendGameMessage(msg, position)
   .then(data => console.log("response: ", data))
   .catch(error => console.error(error));
@@ -59,6 +68,16 @@ function sendPulseMessage(btn) {
     [0,255,0],
     [255,0,0],
   ];
+  sendGameMessage(msg, position)
+  .then(data => console.log("response: ", data))
+  .catch(error => console.error(error));
+}
+
+function sendParticularPulseMessage(color_values) {
+  let msg = Object.assign({}, message_template);
+  let position = client.position;
+  msg.Action = 'pulse';
+  msg.Value = color_values;
   sendGameMessage(msg, position)
   .then(data => console.log("response: ", data))
   .catch(error => console.error(error));
