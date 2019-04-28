@@ -10,9 +10,7 @@ html, body {
   position: absolute;
   top: 1vh;
   bottom: 1vh;
-  left: calc(50% - 36vh);
-  width: 72vh;
-  max-width: 100%;
+  width: 100%;
 }
 
 .scene-panel {
@@ -58,6 +56,13 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 }
 
 #welcome {
+}
+#welcome > section.body {
+  text-align: center;
+}
+#welcome > section.body button {
+  font-size 4em;
+  width: 33vw;
 }
 
 #waitingforopponent {
