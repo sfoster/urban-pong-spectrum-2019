@@ -634,7 +634,7 @@ class Controller (threading.Thread):
             delta = now - self.north_queue['uuid'].timestamp
             if delta.total_seconds > self.timeout:
                 del self.north_queue['uuid']
-        for uuid in self.south_queue.keys()
+        for uuid in self.south_queue.keys():
             delta = now - self.north_queue['uuid'].timestamp
             if delta.total_seconds() > self.timeout:
                 del self.south_queue['uuid']
