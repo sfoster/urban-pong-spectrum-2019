@@ -73,33 +73,27 @@ class Colors:
 
 
     @staticmethod
-    def artistic_additive_blend(color1, color2):
+    def desaturate_clamp(color):
         """
         Return blended color derived from color1 and color2.
         "Artistic" because brightness exceeding 255 is represented by desaturation.
         """
-        color3 = [
-            color1[0] + color2[0],
-            color1[1] + color2[1],
-            color1[2] + color2[2]
-        ]
-
-        excess = max(color3) - 255
+        excess = max(color) - 255
         if (excess <= 0):
-            return color3
+            return color
 
         for i in range(3):
-            color3[i] = min(color3[i], 255)
+            color[i] = min(color[i], 255)
 
         excess /= 255
-        color3_hsb = Colors.rgb_to_hsb(color3)
+        color3_hsb = Colors.rgb_to_hsb(color)
         color3_hsb = [
-            max(color3_hsb[0], 0),
-            max(color3_hsb[1] - excess, 0),
-            max(color3_hsb[2], 0),
+            max(color_hsb[0], 0),
+            max(color_hsb[1] - excess, 0),
+            max(color_hsb[2], 0),
         ]
 
-        return Colors.hsb_to_rgb(color3_hsb)
+        return Colors.hsb_to_rgb(color_hsb)
 
     @staticmethod
     def adjust_brightness(rgb, allowed_max):

@@ -8,6 +8,7 @@ import datetime
 import threading
 import Lighting_Controllers
 import math
+from vector import Vector
 import random
 import copy
 from Resources import Colors, Urban_Pong_Effects
@@ -716,8 +717,8 @@ class Controller (threading.Thread):
         standby_start_time = datetime.datetime.now();
         lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
 
-        pix1 = (0, 7, 60)
-        pix2 = (50, 80, 20)
+        pix1 = Vector(0, 7, 60)
+        pix2 = Vector(50, 80, 20)
         iterations = 0
         while not self.start_event.is_set():
             elapsed_standby = datetime.datetime.now() - standby_start_time
@@ -729,15 +730,11 @@ class Controller (threading.Thread):
                     lightstate[pix*self.bytes_per_pixel + chan] = 6*bit # arbitrary brightness scaler
 
             fac = (math.sin(iterations/100)+1)/2
-            # import pdb; pdb.set_trace();
-            # pix3 = [
-            #     pix2[0]*fac,
-            #     pix2[1]*fac,
-            #     pix2[2]*fac,
-            # ]
-            pix4 = Colors.artistic_additive_blend(pix1, pix2)
+            pix3 = pix2*fac
 
-            for i in range(self.bytes_per_pixel):
+            pix4 = Colors.desaturate_clam(pix1 + pix3)
+
+            for i in range(3):
                 lightstate[i] = pix4[i]
 
             self.lighting.update(lightstate)
