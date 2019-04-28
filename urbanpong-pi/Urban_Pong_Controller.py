@@ -162,6 +162,8 @@ class Spectrum(Game):
         :return: None
         """
 
+        max_bytes = self.controller.num_pixels * self.controller.bytes_per_pixel
+
         # start new round or restart game when one players colors reach the other side
         if self.attacker_location >= self.controller.num_pixels or self.defender_location < 0:
             if self.current_round < self.max_rounds:
@@ -182,10 +184,11 @@ class Spectrum(Game):
             return
 
         # start moving colors once an attacker or defender set their colors
-        if self.attacker_colors is not None and self.attacker_location < self.controller.num_pixels:
+        if self.attacker_colors is not None and self.attacker_location < max_bytes:
             # move colors to attackers position
             if DEBUG:
                 print("Moving attacker colors to %d" % self.attacker_location)
+                print(self.attacker_colors)
             for color in self.attacker_colors:
                 self.leds[self.attacker_location] = color[0]
                 self.leds[self.attacker_location+1] = color[1]
@@ -199,6 +202,7 @@ class Spectrum(Game):
             # move colors to defenders position
             if DEBUG:
                 print("Moving defender colors to %d" % self.defender_colors)
+                print(self.defender_colors)
             for color in self.defender_colors:
                 self.leds[self.defender_location] = color[0]
                 self.leds[self.defender_location+1] = color[1]
