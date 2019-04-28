@@ -26,6 +26,9 @@ class Urban_Pong_Request_Handler (http.server.BaseHTTPRequestHandler):
 
         http.server.BaseHTTPRequestHandler.__init__(self, request, client, server)
 
+    def log_message(self, format, *args):
+        pass
+
     def do_POST(self):
 
         address = str(self.client_address[0])
