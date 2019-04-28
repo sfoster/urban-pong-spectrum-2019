@@ -702,13 +702,16 @@ class Controller (threading.Thread):
             print("Entering standby while loop")
 
         standby_start_time = datetime.datetime.now();
+        lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
+
         while not self.start_event.is_set():
             elapsed_standby = datetime.datetime.now() - standby_start_time
+            display_quantity = elapsed_standby.seconds
 
-            binary_clockstate = bin(elapsed_standby.seconds)
-            lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
-
-            binary_lightstate = (lightstate & binary_clockstate)
+            for pix in range(self.num_pixels -1, -1, -1):
+                bit = display_quantity >> pix & 1
+                for chan in range(self.bytes_per_pixel):
+                    lightstate[pix + chan] = 128*display_quantity
 
             self.lighting.update(binary_lightstate)
             self.standby_event.wait(timeout=1)
