@@ -593,7 +593,7 @@ class Controller (threading.Thread):
 
         # state variables
         self.state = None
-        self.velocity = 0.5        # type: float #meters per second: velocity of simulated 'ball'
+        self.velocity = 0.05        # type: float #meters per second: velocity of simulated 'ball'
         self.acceleration = 0.0    # type: float  # meters per second per second: can be negative (slows down) or positive (speeds up)
         self.location = 0          # type: int # pixel location of the 'ball'
         self.direction = Controller.NORTH # the direction of led movement
