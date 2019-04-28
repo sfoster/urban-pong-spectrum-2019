@@ -1,13 +1,35 @@
 window.onload = function() {
-  window.game = new Game();
-  game.client = new Client();
-  ["welcome", "waiting", "colorpicker", "gameover"].forEach(function(id) {
-    let elem = document.getElementById(id);
-    let scene = new Scene(elem, {
-      id
-    });
-    game.registerScene(id, scene);
+  const game = window.game = new Game();
+  let scene;
+  scene = new WelcomeScene(document.getElementById("welcome"), {
+    id: "welcome",
+    game
   });
+  game.registerScene("welcome", scene);
+
+  scene = new Scene(document.getElementById("waiting"), {
+    id: "waiting",
+    game
+  });
+  game.registerScene("waiting", scene);
+
+  scene = new Scene(document.getElementById("colorpicker"), {
+    id: "colorpicker",
+    game
+  });
+  game.registerScene("colorpicker", scene);
+
+  scene = new Scene(document.getElementById("gameover"), {
+    id: "gameover",
+    game
+  });
+  game.registerScene("gameover", scene);
+
   game.start();
 };
 
+function getPositionForButton(btn) {
+  let parent = btn.closest("section[data-position]");
+  let position = parent.dataset.position;
+  return position.toLowerCase().trim()
+}

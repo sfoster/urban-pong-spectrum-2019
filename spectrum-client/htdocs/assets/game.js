@@ -4,6 +4,9 @@ class Game {
     this.maxTurns = 2;
     this.scenes = {};
     this.currentScene = null;
+    this.player = {
+
+    }
   }
   registerScene(name, scene) {
     this.scenes[name] = scene;

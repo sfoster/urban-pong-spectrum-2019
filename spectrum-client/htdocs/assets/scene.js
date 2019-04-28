@@ -3,6 +3,18 @@ class Scene {
     this.elem = elem;
     this.elem.id = 'scene-'+options.id;
     this.options = Object.assign({}, options);
+    this._topics = new Set();
+  }
+  listen(name) {
+    if (this._topics.has(name)) {
+      return;
+    }
+    this._topics.add(name);
+    document.addEventListener(name, this);
+  }
+  removeListener(name) {
+    this._topics.delete(name);
+    document.removeEventListener(name, this);
   }
   enter() {
     this.elem.addEventListener("click", this);
@@ -11,7 +23,39 @@ class Scene {
     console.log("Entering scene: ", this.options.id, this);
   }
   exit() {
-    this.elem.removeEventListener("click", this);
+    for (let topic of this._topics){
+      this.removeListener(topic);
+    }
     this.elem.classList.add("hidden");
+  }
+  handleEvent(event) {
+    let mname = 'on'+event.type[0].toUpperCase()+event.type.substring(1);
+    if (typeof this[mname] == 'function') {
+      this[mname].call(this, event);
+    }
+  }
+}
+
+class WelcomeScene extends Scene {
+  enter() {
+    super.enter();
+    console.log("Enter WelcomeScene");
+    let game = this.options.game;
+    if (!game.player) {
+      const player = game.player = {
+        id: uuidv4(),
+        // position: 'north'|'south'
+      };
+    }
+  }
+  playAs(position) {
+    let game = this.options.game;
+    game.player.position = position;
+    game.client = new Client(game.player, {});
+    this.listen('clientjoined');
+  }
+  onClientjoined(event) {
+    this.options.game.switchScene("waiting");
+    console.log('clientjoined:', event);
   }
 }
