@@ -711,7 +711,7 @@ class Controller (threading.Thread):
             for pix in range(self.num_pixels -1, -1, -1):
                 bit = display_quantity >> pix & 1
                 for chan in range(self.bytes_per_pixel):
-                    lightstate[pix + chan] = 16*bit
+                    lightstate[pix*self.bytes_per_pixel + chan] = 6*bit # arbitrary brightness scaler
 
             self.lighting.update(lightstate)
             self.standby_event.wait(timeout=1)
