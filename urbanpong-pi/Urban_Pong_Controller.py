@@ -128,25 +128,25 @@ class Spectrum(Game):
         self.defender_start = self.controller.num_pixels
         self.max_rounds = 10
         self.controller.state = Game_States.INIT
-        self.attacker = None
-        self.defender = None
         self.attacker_colors = None
         self.defender_colors = None
         self.attacker_location = None
         self.defender_location = None
         self.current_round = 0
         self.leds = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
+        self.controller.start_scene = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
 
 
-    def start_round(self, attacker, defender):
+    def start_round(self):
         """
         Actions to set game to START state. This will either occur after a round has completed or to start a
         new game with new players.
         :return: None
         """
-
-        self.attacker = attacker
-        self.defender = defender
+        if len(self.players) != 2:
+            return
+        self.attacker = self.players[0]
+        self.defender = self.players[1]
         self.attacker_colors = None
         self.defender_colors = None
         self.attacker_location = self.attacker_start
@@ -220,12 +220,21 @@ class Spectrum(Game):
         self.initialize()
         self.controller.play_event.set()
         self.controller.continue_event.set()
+        self.controller.restart_event.clear()
+        self.controller.add_players_to_game()
 
     def terminate(self):
         """
         Sets up event objects and state variables necessary to terminate the game
         """
-        pass
+        if self.timeout is not None:
+            self.timeout.cancel()
+            self.timeout = None
+        self.controller.terminate_event.set()
+        self.controller.start_event.set()
+        self.controller.play_event.set()
+        self.controller.continue_event.set()
+
 
 
     def action(self, data: dict):
@@ -623,9 +632,9 @@ class Controller (threading.Thread):
         self.game = Spectrum(self)
 
         # players queues
-        self.timeout = 3 # seconds until player is removed from queue without receiving a request
-        self.south_queue = dict()
-        self.north_queue = dict()
+        self.timeout = 3.0 # seconds until player is removed from queue without receiving a request
+        self.south_queue = list()
+        self.north_queue = list()
         self.queue_timer = None
 
     def check_queues(self):
@@ -634,14 +643,14 @@ class Controller (threading.Thread):
         :return: None
         """
         now = datetime.datetime.now()
-        for uuid in self.north_queue.keys():
-            delta = now - self.north_queue['uuid'].timestamp
-            if delta.total_seconds > self.timeout:
-                del self.north_queue['uuid']
-        for uuid in self.south_queue.keys():
-            delta = now - self.north_queue['uuid'].timestamp
+        for i, player in enumerate(self.north_queue):
+            delta = now - player.timestamp
             if delta.total_seconds() > self.timeout:
-                del self.south_queue['uuid']
+                self.north_queue.pop(i)
+        for i, player in enumerate(self.south_queue):
+            delta = now - player.timestamp
+            if delta.total_seconds() > self.timeout:
+                self.south_queue.pop(i)
 
 
     def players_in_queue(self):
@@ -673,7 +682,6 @@ class Controller (threading.Thread):
             for player in self.game.players:
                 scores.append(player.get_score())
 
-        # TODO: this is pre player queue functionality. Eventually an actual queue will be implemented
         game_status = { 'Result': 'Status', 'State': self.state.name, 'Scores': scores, 'Queue': self.players_in_queue() }
         if DEBUG:
             print('game status = %s' % (game_status,))
@@ -765,15 +773,17 @@ class Controller (threading.Thread):
             return { 'Result': 'error', 'Value': msg }
 
         # handle player queue actions here
-        if data['Action'] == 'Join':
+        if data['Action'] == 'join':
             if data['Value'] not in ['north', 'south']:
                 msg = "Players can only join north or south side."
                 return { 'Result': 'error', 'Value': msg }
             new_player = Player(data['Name'], data['UUID'])
             if data['Value'] == 'north':
-                self.north_queue[data['UUID']] = new_player
+                self.north_queue.append(new_player)
             else:
-                self.south_queue[data['UUID']] = new_player
+                self.south_queue.append(new_player)
+            if self.state == Game_States.INIT:
+                self.add_players_to_game()
         else:
             # remaining actions handled by the game, but first check and update timestamp
             if data['UUID'] in self.north_queue:
@@ -783,6 +793,17 @@ class Controller (threading.Thread):
             self.game.action(data)
 
         return self.status()
+
+    def add_players_to_game(self):
+        """
+        Start a new game when we have players in both queues
+        :return: None
+        """
+        if len(self.south_queue) > 0 and len(self.north_queue) > 0:
+            self.game.players = []
+            self.game.players.append(self.north_queue.pop(0))
+            self.game.players.append(self.south_queue.pop(0))
+            self.game.start_round()
 
     def move_color(self, color):
         """
