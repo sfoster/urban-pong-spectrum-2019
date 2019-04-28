@@ -151,8 +151,8 @@ class Spectrum(Game):
         self.defender_colors = None
         self.attacker_location = self.attacker_start
         self.defender_location = self.defender_start
-        self.controller.state = Game_States.START
         self.current_round += 1
+        self.controller.start_event.set()
 
 
     def play(self):
