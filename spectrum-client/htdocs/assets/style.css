@@ -1,6 +1,6 @@
 html, body {
   margin:0;
-  background-color: #414042;
+  background-color: #000;
   color: #fff;
   font-family: 'Proxima Nova Soft', 'Helvetica Neue', sans-serif;
   font-size: 18px;
@@ -24,6 +24,7 @@ html, body {
 }
 
 .scene-panel {
+  background-color: #414042;
   font-weight: bold;
   color: #fff;
   display: flex;
@@ -56,11 +57,9 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 }
 
 #welcome {
-  background-color: green;
 }
 
 #waitingforopponent {
-  background-color: yellow;
 }
 
 #colorpicker {
@@ -68,8 +67,8 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 }
 
 #gameover {
-  background-color: orange;
 }
+
 #gameover section.body {
   padding: 0 1rem;
 }
