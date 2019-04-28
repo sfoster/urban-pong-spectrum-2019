@@ -1,0 +1,25 @@
+html, body {
+  margin:0;
+  background-color:black;
+}
+
+#game-container {
+  position: absolute;
+  top: 8vh;
+  bottom: 8vh;
+  left: calc(50% - 32.5vh);
+  width: 65vh;
+  background-color: #999;
+}
+
+.scene-panel {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
+  z-index: 2;
+}
+.scene-panel.hidden {
+  display: none;
+}
