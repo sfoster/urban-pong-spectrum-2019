@@ -1,7 +1,7 @@
 class Game {
   constructor(elem, options) {
     this.turnCount = 0;
-    this.maxTurns = 9;
+    this.maxTurns = 2;
     this.scenes = {};
     this.currentScene = null;
   }
