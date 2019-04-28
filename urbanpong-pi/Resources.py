@@ -4,6 +4,7 @@ Resources for use in Lighting Controllers
 
 import array
 import copy
+import math
 
 # color definitions
 UO_GREEN  = (18, 70, 1, 0)
@@ -72,7 +73,31 @@ class Colors:
 
 
     @staticmethod
-    def adjust_brightness(rgb, max):
+    def artistic_additive_blend(color1, color2):
+        """
+        Return blended color derived from color1 and color2.
+        "Artistic" because brightness exceeding 255 is represented by desaturation.
+        """
+        color3 = [
+            color1[0] + color2[0],
+            color1[1] + color2[1],
+            color1[2] + color2[2]
+        ]
+
+        excess = max(color3) - 255
+        if (excess <= 0):
+            return color3
+
+        for i in range(3):
+            color3[i] = min(color3[i], 255)
+
+        color3_hsb = Colors.rgb_to_hsb(color3)
+        print("color3", color3, color3_hsb)
+
+        return color3
+
+    @staticmethod
+    def adjust_brightness(rgb, allowed_max):
         """
         Scales the max rbg value to the desired setting. This effectively changes the color to a 'darker' hue.
         Useful if some lighting devices have too high of a white component with the pre-defined color code, though, you
@@ -87,16 +112,16 @@ class Colors:
         blue= float(rgb[2])
 
         maximum_value = max(rgb)
-        if maximum_value > max:
-            delta = maximum_value - max
-            red = red - (red * (delta/max))
-            green = green - (green * (delta/max))
-            blue = blue - (blue * (delta/max))
-        elif maximum_value < max:
-            delta = max - maximum_value
-            red = red + (red * (delta/max))
-            green = green + (green * (delta/max))
-            blue = blue + (blue * (delta/max))
+        if maximum_value > allowed_max:
+            delta = maximum_value - allowed_max
+            red = red - (red * (delta/allowed_max))
+            green = green - (green * (delta/allowed_max))
+            blue = blue - (blue * (delta/allowed_max))
+        elif maximum_value < allowed_max:
+            delta = allowed_max - maximum_value
+            red = red + (red * (delta/allowed_max))
+            green = green + (green * (delta/allowed_max))
+            blue = blue + (blue * (delta/allowed_max))
 
         red = int(red)
         if red < 0:
@@ -143,6 +168,7 @@ class Colors:
     def rgb_to_hsb(rgb):
         """
         converts RGB values to HSB format
+        Accepts values in range 0..255 and returns values in 0..1 (except for hue, which is 0..360)
         NOTE: this algorithm was taken from https://www.cs.rit.edu/~ncs/color/t_convert.html#RGB to HSV & HSV to RGB
         on June 11, 2018
         :param RGBK:
@@ -195,6 +221,71 @@ class Colors:
             result = (hue, saturation, brightness)
 
         return result
+
+    @staticmethod
+    def hsb_to_rgb(hsb):
+        """
+        Converts HSB values to RGB format
+        Accepts values in range 0..1 and returns values in 0..255
+        NOTE: this algorithm was taken from https://www.cs.rit.edu/~ncs/color/t_convert.html#RGB to HSV & HSV to RGB
+        on April 28, 2019
+        :param HSBK:
+        :return: tuple of RGB values, zero values
+        """
+
+        i = 0
+        f = 0.0
+        p = 0.0
+        q = 0.0
+        t = 0.0
+
+        red = 0
+        green = 0
+        blue = 0
+
+        hue = hsb[0]
+        saturation = hsb[1]
+        brightness = hsb[2]
+
+        if (saturation == 0):
+            # achromatic (grey)
+            red = green = blue = brightness
+            return (red, green, blue)
+
+        hue /= 60			# sector 0 to 5
+        i = math.floor(hue)
+        f = hue - i			# factorial part of h
+        p = brightness * ( 1 - saturation )
+        q = brightness * ( 1 - saturation * f )
+        t = brightness * ( 1 - saturation * ( 1 - f ) )
+
+        if (i == 0):
+            red = brightness
+            green = t
+            blue = p
+
+        elif (i == 1):
+            red = q
+            green = brightness
+            blue = p
+        elif (i ==  2):
+            red = p
+            green = brightness
+            blue = t
+        elif (i ==  3):
+            red = p
+            green = q
+            blue = brightness
+        elif (i ==  4):
+            red = t
+            green = p
+            blue = brightness
+        else:
+            red = brightness
+            green = p
+            blue = q
+
+        return (int(red*255), int(green*255), int(blue*255))
 
 
 
