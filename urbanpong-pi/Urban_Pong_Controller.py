@@ -713,7 +713,7 @@ class Controller (threading.Thread):
                 for chan in range(self.bytes_per_pixel):
                     lightstate[pix + chan] = 128*display_quantity
 
-            self.lighting.update(binary_lightstate)
+            self.lighting.update(lightstate)
             self.standby_event.wait(timeout=1)
             self.standby_event.clear()
 
