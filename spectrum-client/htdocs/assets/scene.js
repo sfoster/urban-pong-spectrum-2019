@@ -49,7 +49,8 @@ class WaitingForOpponentScene extends Scene {
     this.client.pollForStatus(this.player);
     console.log("Enter WaitingForOpponentScene");
   }
-  onPlayerstatus(data) {
+  onPlayerstatus(event) {
+    let data = event.detail;
     console.log("Got status response message: ", data);
     if (data.Scores && data.Scores.length == 2) {
       this.client.stopPollingForStatus();
@@ -70,7 +71,8 @@ class ColorPickerScene extends Scene {
     this.colorSent = null;
     super.exit();
   }
-  onPlayerstatus(data) {
+  onPlayerstatus(event) {
+    let data = event.detail;
     console.log("Got status response message: ", data);
     if (this.colorSent && data) {
       // TODO: check the response to see what to do
