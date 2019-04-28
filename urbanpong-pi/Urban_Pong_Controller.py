@@ -16,6 +16,7 @@ from enum import Enum
 from Lighting_Controllers import LIFX
 from abc import abstractmethod
 
+GLOBAL_TRIGGER_NOTIFY = False
 DEBUG = True
 
 class Game_States(Enum):
@@ -132,8 +133,8 @@ class Spectrum(Game):
         self.controller.state = Game_States.INIT
         self.attacker_colors = None
         self.defender_colors = None
-        self.attacker_location = None
-        self.defender_location = None
+        self.attacker_location = self.attacker_start
+        self.defender_location = self.defender_start
         self.current_round = 0
         self.leds = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
         self.controller.start_scene = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
@@ -181,7 +182,7 @@ class Spectrum(Game):
             return
 
         # start moving colors once an attacker or defender set their colors
-        if self.attacker_colors is not None and self.attacker_location < max_bytes:
+        if self.attacker_colors is not None and self.attacker_location < self.controller.num_pixels:
             # move colors to attackers position
             if DEBUG:
                 print("Moving attacker colors to %d" % self.attacker_location)
@@ -874,11 +875,16 @@ class Controller (threading.Thread):
         Start a new game when we have players in both queues
         :return: None
         """
+        # temporary measure, one queue was being emptied without the other
+        # if len(self.south_queue) > 0 and len(self.north_queue) > 0:
         if len(self.south_queue) > 0 and len(self.north_queue) > 0:
             self.game.players = []
-            self.game.players.append(self.north_queue.pop(0))
-            self.game.players.append(self.south_queue.pop(0))
+            GLOBAL_TRIGGER_NOTIFY = True
+            self.game.players.append(self.north_queue[0])
+            self.game.players.append(self.south_queue[0])
             self.game.start_round()
+            self.north_queue.clear()
+            self.south_queue.clear()
 
     def move_color(self, color):
         """
@@ -920,6 +926,9 @@ class Controller (threading.Thread):
         self.game.initialize()
         self.state = Game_States.INIT
 
+        if GLOBAL_TRIGGER_NOTIFY:
+            import pdb; pdb.set_trace()
+
         while not self.terminate_event.is_set():
             if not self.restart_event.is_set() and not self.start_event.is_set():
                 # start standby lighting thread
@@ -931,6 +940,7 @@ class Controller (threading.Thread):
                 standby_thread.join()
                 if DEBUG:
                     print("Starting game")
+                    self.game.restart()
             self.lighting.update(self.start_scene)
             if not self.restart_event.is_set() and self.play_event.wait():
                 self.state = Game_States.PLAY
