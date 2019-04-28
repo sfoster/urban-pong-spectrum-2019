@@ -1,7 +1,7 @@
 class Scene {
   constructor(elem, options={}) {
     this.elem = elem;
-    this.elem.id = 'scene-'+options.id;
+    this.id = this.elem.dataset.id = options.id;
     this.options = Object.assign({}, options);
     this._topics = new Set();
   }
@@ -36,6 +36,13 @@ class Scene {
   }
 }
 
+class WaitingForOpponentScene extends Scene {
+  enter() {
+    super.enter();
+    console.log("Enter WaitingForOpponentScene");
+  }
+}
+
 class WelcomeScene extends Scene {
   enter() {
     super.enter();
@@ -43,9 +50,10 @@ class WelcomeScene extends Scene {
   }
   playAs(position) {
     let game = this.options.game;
+    let client = this.options.client;
     game.player.position = position;
-    game.client = new Client(game.player, {});
-    game.client.sendJoinMessage(game.player).then(resp => {
+
+    client.sendJoinMessage(game.player).then(resp => {
       console.log("Got join response: ", resp);
       game.switchScene("waiting");
     });

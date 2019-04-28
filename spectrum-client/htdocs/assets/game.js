@@ -4,16 +4,25 @@ class Game {
     this.maxTurns = 2;
     this.scenes = {};
     this.currentScene = null;
-    this.player = {
-
-    }
+    this.player = {};
   }
   registerScene(name, scene) {
     this.scenes[name] = scene;
   }
   switchScene(name) {
+    if (this.previousScene) {
+      this.previousScene.elem.classList.remove("previous");
+      this.previousScene = null;
+    }
     if (this.currentScene) {
+      if (this.currentScene.id.startsWith("waiting")) {
+        this.previousScene = this.currentScene;
+      }
+      this.currentScene.elem.classList.remove("current");
       this.currentScene.exit();
+    }
+    if (this.previousScene) {
+      this.previousScene.elem.classList.add("previous");
     }
     this.currentScene = this.scenes[name];
     this.currentScene.enter();
@@ -29,7 +38,7 @@ class Game {
   }
   enterLobby() {
     console.log("enterLobby");
-    this.switchScene("waiting");
+    this.switchScene("waitingforopponent");
     setTimeout(this.turn.bind(this), 1000);
   }
   turn() {
