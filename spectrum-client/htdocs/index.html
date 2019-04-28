@@ -15,28 +15,53 @@
 <body>
 <div id="game-container">
   <div id="welcome" class="scene-panel hidden">
-    Welcome
-
-    <p><button onclick="game.currentScene.playAs('north')">Play as North</button></p>
-    <p><button onclick="game.currentScene.playAs('south')">Play as South</button></p>
+    <header>
+      <h2>Welcome</h2>
+    </header>
+    <section class="body">
+      <p><button onclick="game.currentScene.playAs('north')">Play as North</button></p>
+      <p><button onclick="game.currentScene.playAs('south')">Play as South</button></p>
+    </section>
+    <footer>
+    </footer>
   </div>
   <div id="gameover" class="scene-panel hidden">
     <header>
       <h2>Game Over</h2>
     </header>
-    <section id="tiles">
+    <section class="body" id="tiles">
     </section>
+    <footer>
+    </footer>
   </div>
   <div id="colorpicker" class="scene-panel hidden">
-    Color Picker
-    <p><button onclick="game.currentScene.sendColor([0,0,255])">Send blue</button></p>
-    <p><button onclick="game.currentScene.sendColor([0,255,0])">Send green</button></p>
+    <header>
+      <h2>Color Picker</h2>
+    </header>
+    <section class="body">
+      <p><button onclick="game.currentScene.sendColor([0,0,255])">Send blue</button></p>
+      <p><button onclick="game.currentScene.sendColor([0,255,0])">Send green</button></p>
+    </section>
+    <footer>
+    </footer>
   </div>
   <div id="waitingforopponent" class="scene-panel hidden">
-    Waiting for Opponent
+    <header>
+      <h2>Waiting for Opponent</h2>
+    </header>
+    <section class="body">
+    </section>
+    <footer>
+    </footer>
   </div>
   <div id="waiting" class="scene-panel hidden">
-    Waiting
+    <header>
+      <h2>Waiting...</h2>
+    </header>
+    <section class="body">
+    </section>
+    <footer>
+    </footer>
   </div>
 </div>
 
