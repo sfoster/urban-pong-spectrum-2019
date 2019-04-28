@@ -701,6 +701,63 @@ class Controller (threading.Thread):
 
         return game_status
 
+    def collision_effect(self, collision_position, north_color, south_color, speed):
+        """
+        A colorful collision effect
+        :return: None
+        """
+
+        lightstate = Colors.fill_array(Colors.black, self.num_pixels, self.bytes_per_pixel)
+
+        def pulse(distance, radius):
+            if distance >= radius:
+                return 0
+            value = math.cos((math.pi*distance)/radius)+1
+            return value
+
+        nc = Vector(
+            north_color[0],
+            north_color[1],
+            north_color[2],
+        )
+        sc = Vector(
+            south_color[0],
+            south_color[1],
+            south_color[2],
+        )
+
+        # We're assuming 0 is at the north end
+        mix_factor = collision_position / self.num_pixels
+        new_color = (nc*(1-mix_factor)) + (sc*mix_factor)
+        print("new color", new_color)
+
+        tick = 0
+        anim_duration = 3.5
+        anim_start = datetime.datetime.now();
+        while True:
+            anim_elapsed = datetime.datetime.now() - anim_start
+            anim_fac = (anim_duration - (anim_elapsed.seconds + anim_elapsed.microseconds/1000000))/anim_duration
+            if (anim_fac <= 0):
+                break
+
+            for i in range(0, self.num_pixels):
+                distance = int(abs(i-collision_position))
+                # pixel_color = Colors.desaturate_clamp(new_color * pulse(distance, tick) * (((math.cos(distance**2)+1)/2) * ((math.sin(tick*.1)+1)/2)))
+                pixel_color = Colors.desaturate_clamp(new_color * pulse(distance, (1-anim_fac**3)*self.num_pixels*2) * anim_fac**3)
+
+                for j in range(self.bytes_per_pixel):
+                    if j < 3:
+                        lightstate[(i*self.bytes_per_pixel) + j] = pixel_color[j]
+                    else:
+                        lightstate[(i*self.bytes_per_pixel) + j] = 0
+
+
+            self.lighting.update(lightstate)
+            self.standby_event.wait(timeout=.01)
+            self.standby_event.clear()
+            tick += 1
+
+
     def standby_effect(self):
         """
         A simple binary clock which counts seconds since standby began
@@ -713,6 +770,8 @@ class Controller (threading.Thread):
         self.lighting.update(lights_off)
         if DEBUG:
             print("Entering standby while loop")
+
+        self.collision_effect(self.num_pixels/2, [0,0,255], [255,0,0], 1.0)
 
         standby_start_time = datetime.datetime.now();
         lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
