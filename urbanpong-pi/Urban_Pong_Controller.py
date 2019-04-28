@@ -226,7 +226,14 @@ class Spectrum(Game):
         """
         Sets up event objects and state variables necessary to terminate the game
         """
-        pass
+        if self.timeout is not None:
+            self.timeout.cancel()
+            self.timeout = None
+        self.controller.terminate_event.set()
+        self.controller.start_event.set()
+        self.controller.play_event.set()
+        self.controller.continue_event.set()
+
 
 
     def action(self, data: dict):
