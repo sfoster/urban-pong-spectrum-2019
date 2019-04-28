@@ -184,32 +184,39 @@ class Spectrum(Game):
         # start moving colors once an attacker or defender set their colors
         if self.attacker_colors is not None and self.attacker_location < self.controller.num_pixels:
             # move colors to attackers position
+            offset = self.attacker_location*self.controller.bytes_per_pixel
+            for i in range(3):
+                self.leds[offset+i] = self.attacker_colors[0][i]
+            self.attacker_location += 1
             if DEBUG:
                 print("Moving attacker colors to %d" % self.attacker_location)
                 print(self.attacker_colors)
-            for color in self.attacker_colors:
-                self.leds[self.attacker_location] = color[0]
-                self.leds[self.attacker_location+1] = color[1]
-                self.leds[self.attacker_location+2] = color[2]
-                if self.attacker_location > 0:
-                    self.leds[self.attacker_location-4] = Colors.black[0]
-                    self.leds[self.attacker_location-3] = Colors.black[1]
-                    self.leds[self.attacker_location-2] = Colors.black[2]
-                self.attacker_location += 4
+            # for color in self.attacker_colors:
+            #     self.leds[self.attacker_location] = color[0]
+            #     self.leds[self.attacker_location+1] = color[1]
+            #     self.leds[self.attacker_location+2] = color[2]
+            #     if self.attacker_location > 0:
+            #         self.leds[self.attacker_location-4] = Colors.black[0]
+            #         self.leds[self.attacker_location-3] = Colors.black[1]
+            #         self.leds[self.attacker_location-2] = Colors.black[2]
         if self.defender_colors is not None and self.defender_location >= 0:
             # move colors to defenders position
+            offset = self.defender_location*self.controller.bytes_per_pixel - self.controller.bytes_per_pixel
+            for i in range(3):
+                self.leds[offset+i] = self.defender_colors[0][i]
+            self.defender_location -= 1
             if DEBUG:
-                # print("Moving defender colors to %d" % self.defender_colors)
+                print("Moving defender colors to %d" % self.defender_location)
                 print(self.defender_colors)
-            for color in self.defender_colors:
-                self.leds[self.defender_location] = color[0]
-                self.leds[self.defender_location+1] = color[1]
-                self.leds[self.defender_location+2] = color[2]
-                if self.attacker_location < self.controller.num_pixels - self.controller.num_pixels:
-                    self.leds[self.defender_location+4] = Colors.black[0]
-                    self.leds[self.defender_location+5] = Colors.black[1]
-                    self.leds[self.defender_location+6] = Colors.black[2]
-                self.defender_location -= 4
+            # for color in self.defender_colors:
+            #     self.leds[self.defender_location] = color[0]
+            #     self.leds[self.defender_location+1] = color[1]
+            #     self.leds[self.defender_location+2] = color[2]
+            #     if self.attacker_location < self.controller.num_pixels - self.controller.num_pixels:
+            #         self.leds[self.defender_location+4] = Colors.black[0]
+            #         self.leds[self.defender_location+5] = Colors.black[1]
+            #         self.leds[self.defender_location+6] = Colors.black[2]
+            #     self.defender_location -= 4
         self.controller.lighting.update(self.leds)
 
         # sleep to simulate velocity
@@ -698,7 +705,8 @@ class Controller (threading.Thread):
 
         game_status = { 'Result': 'Status', 'State': self.state.name, 'Scores': scores, 'Queue': self.players_in_queue(), 'CurrentRound': self.game.current_round }
         if DEBUG:
-            print('game status = %s' % (game_status,))
+            pass
+            # print('game status = %s' % (game_status,))
 
         return game_status
 
@@ -879,7 +887,7 @@ class Controller (threading.Thread):
         # if len(self.south_queue) > 0 and len(self.north_queue) > 0:
         if len(self.south_queue) > 0 and len(self.north_queue) > 0:
             self.game.players = []
-            GLOBAL_TRIGGER_NOTIFY = True
+            # GLOBAL_TRIGGER_NOTIFY = True
             self.game.players.append(self.north_queue[0])
             self.game.players.append(self.south_queue[0])
             self.game.start_round()
