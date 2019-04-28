@@ -106,7 +106,26 @@ class WelcomeScene extends Scene {
 
     client.sendJoinMessage(game.player).then(resp => {
       console.log("Got join response: ", resp);
-      game.switchScene("waiting");
+      game.switchScene("waitingforopponent");
     });
+  }
+}
+
+class GameOverScene extends Scene {
+  enter() {
+    super.enter();
+    console.log("Enter GameOverScene");
+  }
+  renderResult(colors) {
+    let container = document.getElementById("tiles");
+    container.innerHTML = "";
+    let frag = document.createDocumentFragment();
+    for (let rgb of colors) {
+      let tile = document.createElement("div");
+      tile.classList.add("colortile");
+      tile.style.backgroundColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+      frag.appendChild(tile);
+    }
+    container.appendChild(frag);
   }
 }

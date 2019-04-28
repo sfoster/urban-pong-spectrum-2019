@@ -40,10 +40,9 @@ class Client {
       'Action': 'join',
       'Value': position
     };
+      // this.publishResponse('clientjoined', msg, data);
     return this.sendGameMessage(msg, position)
-    .then(data => {
-      this.publishResponse('clientjoined', msg, data);
-    })
+    .then(data => console.log(data))
     .catch(error => console.error(error));
   }
 
