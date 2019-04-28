@@ -116,6 +116,7 @@ class Spectrum(Game):
         self.attacker_location = None
         self.defender_location = None
         self.current_round = 0
+        self.current_time = None
         self.leds = None
         self.initialize()
 
@@ -208,6 +209,14 @@ class Spectrum(Game):
                     self.leds[self.defender_location+6] = Colors.black[2]
                 self.defender_location -= 4
         self.controller.lighting.update(self.leds)
+
+        # sleep to simulate velocity
+        self.current_time = datetime.datetime.now()
+        elapsed_time = self.current_time - self.controller.last_time
+        if DEBUG:
+            print("velocity = %f, sleeping for %f seconds" % (self.controller.velocity, self.controller.velocity_delay))
+        sleep(self.controller.velocity_delay)
+
 
     def reset(self):
         """
