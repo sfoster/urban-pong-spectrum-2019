@@ -31,7 +31,7 @@ class Urban_Pong_Request_Handler (http.server.BaseHTTPRequestHandler):
         address = str(self.client_address[0])
         port = str(self.client_address[1])
 
-        print("Received POST request from %s:%s" % (address, port))
+        # print("Received POST request from %s:%s" % (address, port))
 
         content_type = self.headers.get_content_type()
         content_length_value = None # type: str
@@ -71,9 +71,9 @@ class Urban_Pong_Request_Handler (http.server.BaseHTTPRequestHandler):
             # do not validate json structure here, that is done by the Urban_Pong_Controller
             # module. simply send back the response
             try:
-                print("Sending request to process: %s" % (json_data,))
+                # print("Sending request to process: %s" % (json_data,))
                 response = self.server.pong.process(json_data)
-                print("Response returned from process: %s" % (response,))
+                # print("Response returned from process: %s" % (response,))
                 response_json = json.dumps(response).encode('utf-8')
                 self.send_response(http.HTTPStatus.OK)
                 self.send_header('Content-Type', 'application/json')
@@ -88,7 +88,7 @@ class Urban_Pong_Request_Handler (http.server.BaseHTTPRequestHandler):
         else:
             self.send_response(http.HTTPStatus.BAD_REQUEST, "Content length %d is out-of-bounds" % content_length)
 
-        print(content_type, content_length, max_content_length, '\n', json_data, '\n', response_json)
+        # print(content_type, content_length, max_content_length, '\n', json_data, '\n', response_json)
 
         self.end_headers()
 
