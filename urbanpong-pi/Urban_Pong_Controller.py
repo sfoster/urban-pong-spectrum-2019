@@ -692,21 +692,18 @@ class Controller (threading.Thread):
         self.lighting.update(lights_off)
         if DEBUG:
             print("Entering standby while loop")
+
+        standby_start_time = datetime.datetime.now();
         while not self.start_event.is_set():
-            light_on = random.randrange(10) # light on for 0-30 seconds
-            transition = random.randrange(2, 5) # light color change transition time
-            light_number = random.randrange(self.num_pixels)
-            pixel = light_number * self.bytes_per_pixel
-            lights_off[pixel] = Colors.blue[0]
-            lights_off[pixel+1] = Colors.blue[1]
-            lights_off[pixel+2] = Colors.blue[2]
-            self.lighting.update(lights_off)
-            sleep_time = float(light_on + transition)
-            self.standby_event.wait(timeout=sleep_time)
-            lights_off[pixel] = Colors.black[0]
-            lights_off[pixel+1] = Colors.black[1]
-            lights_off[pixel+2] = Colors.black[2]
-            self.lighting.update(lights_off)
+            elapsed_standby = datetime.datetime.now() - standby_start_time
+
+            binary_clockstate = bin(elapsed_standby.seconds)
+            lightstate = fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
+
+            binary_lightstate = (lightstate & binary_clockstate)
+
+            self.lighting.update(binary_lightstate)
+            self.standby_event.wait(timeout=1)
             self.standby_event.clear()
 
         if DEBUG:
