@@ -40,7 +40,7 @@ class Client {
       'Action': 'join',
       'Value': position
     };
-    this.sendGameMessage(msg, position)
+    return this.sendGameMessage(msg, position)
     .then(data => {
       this.publishResponse('clientjoined', msg, data);
     })
@@ -53,7 +53,7 @@ class Client {
       'Action': 'status',
       'Value': '',
     };
-    this.sendGameMessage(msg, position)
+    return this.sendGameMessage(msg, position)
     .then(data => this.handleStatusResponse(data))
     .catch(error => console.error(error));
   }
@@ -71,7 +71,7 @@ class Client {
         [255,0,0],
       ],
     };
-    this.sendGameMessage(msg, position)
+    return this.sendGameMessage(msg, position)
     .then(data => console.log("response: ", data))
     .catch(error => console.error(error));
   }

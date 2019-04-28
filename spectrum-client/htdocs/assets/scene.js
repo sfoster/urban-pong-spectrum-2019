@@ -45,11 +45,9 @@ class WelcomeScene extends Scene {
     let game = this.options.game;
     game.player.position = position;
     game.client = new Client(game.player, {});
-    this.listen('clientjoined');
-    game.client.sendJoinMessage(game.player);
-  }
-  onClientjoined(event) {
-    this.options.game.switchScene("waiting");
-    console.log('clientjoined:', event);
+    game.client.sendJoinMessage(game.player).then(resp => {
+      console.log("Got join response: ", resp);
+      game.switchScene("waiting");
+    });
   }
 }
