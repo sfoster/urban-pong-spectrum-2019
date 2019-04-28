@@ -45,8 +45,9 @@ class ColorDot extends Phaser.GameObjects.Container {
     this.x = x;
     this.y = y;
  
-    this.graphics = this.scene.add.graphics();
     var circle = new Phaser.Geom.Circle(50, 50, 100);
+    console.log(circle);
+    this.graphics = this.scene.add.graphics().setInteractive();
     this.graphics.fillStyle(0xff0000, 1.0);   // color: 0xRRGGBB
     this.graphics.fillCircleShape(circle);
 
@@ -54,9 +55,9 @@ class ColorDot extends Phaser.GameObjects.Container {
  
     this.add(this.graphics);
  
-    // this.button.on('pointerdown', function () {
-    //   this.scene.scene.start(targetScene);
-    // }.bind(this));
+    this.scene.input.on('pointerdown', function () {
+      console.log("asdf");
+    }.bind(this));
  
     // this.button.on('pointerover', function () {
     //   this.button.setTexture(key2);
