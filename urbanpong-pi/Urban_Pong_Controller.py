@@ -134,6 +134,7 @@ class Spectrum(Game):
         self.defender_location = None
         self.current_round = 0
         self.leds = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
+        self.controller.start_scene = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
 
 
     def start_round(self):
