@@ -18,6 +18,12 @@ var playerId = {
   'south': uuidv4()
 };
 
+function getPositionForButton(btn) {
+  let parent = btn.closest("section[data-position]");
+  let position = parent.dataset.position;
+  return position.toLowerCase().trim()
+}
+
 function sendGameMessage(msg, position) {
   msg.UUID = playerId[position];
   msg.Name = position[0].toUpperCase() + position.substring(1);
@@ -33,7 +39,7 @@ function sendGameMessage(msg, position) {
 
 function sendJoinMessage(btn) {
   let msg = Object.assign({}, message_template);
-  let position = btn.dataset.position.toLowerCase().trim();
+  let position = getPositionForButton(btn);
   msg.Action = 'join';
   msg.Value = position;
   sendGameMessage(msg, position)
@@ -41,3 +47,19 @@ function sendJoinMessage(btn) {
   .catch(error => console.error(error));
 }
 
+function sendPulseMessage(btn) {
+  let msg = Object.assign({}, message_template);
+  let position = getPositionForButton(btn);
+  msg.Action = 'pulse';
+  msg.Value = [
+    [255,0,0],
+    [0,255,0],
+    [0,0,255],
+    [0,0,255],
+    [0,255,0],
+    [255,0,0],
+  ];
+  sendGameMessage(msg, position)
+  .then(data => console.log("response: ", data))
+  .catch(error => console.error(error));
+}
