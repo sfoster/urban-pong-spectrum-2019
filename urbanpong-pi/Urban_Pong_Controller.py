@@ -106,9 +106,9 @@ class Spectrum(Game):
 
     def __init__(self, controller):
         Game.__init__(self, controller)
-        self.attacker_start = 0
-        self.defender_start = self.controller.num_pixels
-        self.max_rounds = 10
+        self.attacker_start = None
+        self.defender_start = None
+        self.max_rounds = None
         self.attacker = None
         self.defender = None
         self.attacker_colors = None
@@ -117,12 +117,16 @@ class Spectrum(Game):
         self.defender_location = None
         self.current_round = 0
         self.leds = None
+        self.initialize()
 
     def initialize(self):
         """
         Sets up state variables to game's INIT state.
         :return: None
         """
+        self.attacker_start = 0
+        self.defender_start = self.controller.num_pixels
+        self.max_rounds = 10
         self.controller.state = Game_States.INIT
         self.attacker = None
         self.defender = None
