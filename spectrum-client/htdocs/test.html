@@ -2,33 +2,54 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <style>
+      .polling {
+        animation: pulse 2s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0% {
+         color: rgb(153,204,255);
+        }
+        50% {
+         color: green;
+        }
+        100% {
+         color: rgb(153,204,255);
+        }
+      }
+    </style>
   </head>
   <body>
   <header>
     <h1>Test client messages</h1>
   </header>
-  <section id="north">
+  <section id="north" data-position="north">
       <h2>North</h2>
       <ul>
         <li>
-          <button id="join-north" data-position="north" onclick="sendJoinMessage(this)">Join (North)</button>
+          <button onclick="sendJoinMessage(this)">Join (North)</button>
         </li>
         <li>
-          <button id="status-north" onclick="sendStatusMessage(this)">Status (North)</button>
+          <button onclick="sendStatusMessage(this)">Status (North)</button>
+          <button id="poll-north" onclick="toggleStatusPolling(this)">▶</button>
         </li>
         <li>
-          <button id="pulse-north" onclick="sendPulseMessage(this)">Send pulse (North)</button>
+          <button onclick="sendPulseMessage(this)">Send pulse (North)</button>
         </li>
       </ul>
   </section>
-  <section id="south">
+  <section id="south" data-position="south">
       <h2>South</h2>
       <ul>
         <li>
-          <button data-position="south" onclick="sendJoinMessage(this)">Join (South)</button>
+          <button onclick="sendJoinMessage(this)">Join (South)</button>
         </li>
         <li>
-          <button>Status (South)</button>
+          <button onclick="sendStatusMessage(this)">Status (South)</button>
+          <button id="poll-south" onclick="toggleStatusPolling(this)">▶</button>
+        </li>
+        <li>
+          <button onclick="sendPulseMessage(this)">Send pulse (South)</button>
         </li>
       </ul>
   </section>
