@@ -32,7 +32,10 @@ class Game {
     // loading screen is the initial scene
     // send join request
     // switch to lobby on good response
-    setTimeout(this.enterLobby.bind(this), 2000);
+    setTimeout(function() {
+      this.player.position = "north";
+      this.enterLobby();
+    }.bind(this), 2000);
   }
   handleEvent() {
   }

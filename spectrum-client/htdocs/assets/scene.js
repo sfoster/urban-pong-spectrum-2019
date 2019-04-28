@@ -2,7 +2,13 @@ class Scene {
   constructor(elem, options={}) {
     this.elem = elem;
     this.id = this.elem.dataset.id = options.id;
-    this.options = Object.assign({}, options);
+    this.client = options.client;
+    delete options.client;
+    this.game = options.game;
+    delete options.game;
+    this.player = options.player;
+    delete options.player;
+    this.options = options;
     this._topics = new Set();
   }
   listen(name) {
@@ -19,8 +25,8 @@ class Scene {
   enter() {
     this.elem.addEventListener("click", this);
     this.elem.classList.remove("hidden");
-    document.body.dataset.scene = this.options.id;
-    console.log("Entering scene: ", this.options.id, this);
+    document.body.dataset.scene = this.id;
+    console.log("Entering scene: ", this.id, this);
   }
   exit() {
     for (let topic of this._topics){
@@ -39,7 +45,15 @@ class Scene {
 class WaitingForOpponentScene extends Scene {
   enter() {
     super.enter();
+    this.listen("status");
+    this.client.pollForStatus(this.player);
     console.log("Enter WaitingForOpponentScene");
+  }
+  onStatus(resp) {
+    console.log("Got status response message: ", resp);
+    if (resp) {
+      this.client.stopPollingForStatus();
+    }
   }
 }
 
@@ -49,8 +63,8 @@ class WelcomeScene extends Scene {
     console.log("Enter WelcomeScene");
   }
   playAs(position) {
-    let game = this.options.game;
-    let client = this.options.client;
+    let game = this.game;
+    let client = this.client;
     game.player.position = position;
 
     client.sendJoinMessage(game.player).then(resp => {
