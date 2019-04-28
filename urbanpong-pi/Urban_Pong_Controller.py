@@ -116,6 +116,7 @@ class Spectrum(Game):
         self.attacker_location = None
         self.defender_location = None
         self.current_round = 0
+        self.current_time = None
         self.leds = None
         self.initialize()
 
@@ -135,7 +136,7 @@ class Spectrum(Game):
         self.current_round = 0
         self.leds = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
         self.controller.start_scene = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
-
+        self.controller.continue_event.set()
 
     def start_round(self):
         """
@@ -151,8 +152,8 @@ class Spectrum(Game):
         self.defender_colors = None
         self.attacker_location = self.attacker_start
         self.defender_location = self.defender_start
-        self.controller.state = Game_States.START
         self.current_round += 1
+        self.controller.start_event.set()
 
 
     def play(self):
@@ -161,14 +162,12 @@ class Spectrum(Game):
         :return: None
         """
 
+        max_bytes = self.controller.num_pixels * self.controller.bytes_per_pixel
+
         # start new round or restart game when one players colors reach the other side
-        if self.attacker_location >= self.controller.num_pixels or self.defender_location < 0:
-            if self.current_round < self.max_rounds:
-                self.start_round( self.attacker, self.defender)
-                return
-            else:
-                self.controller.restart_event.set()
-                return
+        if self.attacker_location >= max_bytes or self.defender_location < 0:
+            self.controller.restart_event.set()
+            return
 
         # when both attacker and defender reach the same location explode and start next round
         if self.attacker_location == self.defender_location:
@@ -181,8 +180,11 @@ class Spectrum(Game):
             return
 
         # start moving colors once an attacker or defender set their colors
-        if self.attacker_colors is not None and self.attacker_location < self.controller.num_pixels:
+        if self.attacker_colors is not None and self.attacker_location < max_bytes:
             # move colors to attackers position
+            if DEBUG:
+                print("Moving attacker colors to %d" % self.attacker_location)
+                print(self.attacker_colors)
             for color in self.attacker_colors:
                 self.leds[self.attacker_location] = color[0]
                 self.leds[self.attacker_location+1] = color[1]
@@ -194,6 +196,9 @@ class Spectrum(Game):
                 self.attacker_location += 4
         if self.defender_colors is not None and self.defender_location >= 0:
             # move colors to defenders position
+            if DEBUG:
+                print("Moving defender colors to %d" % self.defender_colors)
+                print(self.defender_colors)
             for color in self.defender_colors:
                 self.leds[self.defender_location] = color[0]
                 self.leds[self.defender_location+1] = color[1]
@@ -204,6 +209,14 @@ class Spectrum(Game):
                     self.leds[self.defender_location+6] = Colors.black[2]
                 self.defender_location -= 4
         self.controller.lighting.update(self.leds)
+
+        # sleep to simulate velocity
+        self.current_time = datetime.datetime.now()
+        elapsed_time = self.current_time - self.controller.last_time
+        if DEBUG:
+            print("velocity = %f, sleeping for %f seconds" % (self.controller.velocity, self.controller.velocity_delay))
+        sleep(self.controller.velocity_delay)
+
 
     def reset(self):
         """
@@ -219,7 +232,6 @@ class Spectrum(Game):
         """
         self.initialize()
         self.controller.play_event.set()
-        self.controller.continue_event.set()
         self.controller.restart_event.clear()
         self.controller.add_players_to_game()
 
@@ -244,13 +256,13 @@ class Spectrum(Game):
         :return: None
         """
         if data['Action'] == 'pulse':
-            if data['UUID'] == self.attacker.UUID:
+            if data['UUID'] == self.attacker.uuid:
                 self.attacker_colors = data['Value']
             else:
                 self.defender_colors = data['Value']
 
         if self.attacker_colors is not None or self.defender_colors is not None:
-            self.controller.state = Game_States.PLAY
+            self.controller.play_event.set()
 
 
     def is_valid_uuid(self, uuid):
@@ -581,7 +593,7 @@ class Controller (threading.Thread):
 
         # state variables
         self.state = None
-        self.velocity = 0.5        # type: float #meters per second: velocity of simulated 'ball'
+        self.velocity = 0.05        # type: float #meters per second: velocity of simulated 'ball'
         self.acceleration = 0.0    # type: float  # meters per second per second: can be negative (slows down) or positive (speeds up)
         self.location = 0          # type: int # pixel location of the 'ball'
         self.direction = Controller.NORTH # the direction of led movement
@@ -702,15 +714,18 @@ class Controller (threading.Thread):
             print("Entering standby while loop")
 
         standby_start_time = datetime.datetime.now();
+        lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
+
         while not self.start_event.is_set():
             elapsed_standby = datetime.datetime.now() - standby_start_time
+            display_quantity = elapsed_standby.seconds
 
-            binary_clockstate = bin(elapsed_standby.seconds)
-            lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
+            for pix in range(self.num_pixels -1, -1, -1):
+                bit = display_quantity >> pix & 1
+                for chan in range(self.bytes_per_pixel):
+                    lightstate[pix*self.bytes_per_pixel + chan] = 6*bit # arbitrary brightness scaler
 
-            binary_lightstate = (lightstate & binary_clockstate)
-
-            self.lighting.update(binary_lightstate)
+            self.lighting.update(lightstate)
             self.standby_event.wait(timeout=1)
             self.standby_event.clear()
 
