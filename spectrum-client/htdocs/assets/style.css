@@ -12,6 +12,7 @@ html, body {
   bottom: 1vh;
   left: calc(50% - 36vh);
   width: 72vh;
+  max-width: 100%;
 }
 
 .scene-panel {
@@ -60,6 +61,10 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 }
 
 #waitingforopponent {
+}
+
+#colorpicker > section.body {
+  text-align: center;
 }
 
 #colorpicker:not(.waiting) > section.body {
