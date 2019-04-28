@@ -62,7 +62,7 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 #waitingforopponent {
 }
 
-#colorpicker {
+#colorpicker:not(.waiting) > section.body {
   background-color: blue;
 }
 
