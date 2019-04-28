@@ -91,10 +91,15 @@ class Colors:
         for i in range(3):
             color3[i] = min(color3[i], 255)
 
+        excess /= 255
         color3_hsb = Colors.rgb_to_hsb(color3)
-        print("color3", color3, color3_hsb)
+        color3_hsb = [
+            color3_hsb[0],
+            max(color3_hsb[1] - excess, 0),
+            color3_hsb[2],
+        ]
 
-        return color3
+        return Colors.hsb_to_rgb(color3_hsb)
 
     @staticmethod
     def adjust_brightness(rgb, allowed_max):
@@ -250,40 +255,39 @@ class Colors:
         if (saturation == 0):
             # achromatic (grey)
             red = green = blue = brightness
-            return (red, green, blue)
-
-        hue /= 60			# sector 0 to 5
-        i = math.floor(hue)
-        f = hue - i			# factorial part of h
-        p = brightness * ( 1 - saturation )
-        q = brightness * ( 1 - saturation * f )
-        t = brightness * ( 1 - saturation * ( 1 - f ) )
-
-        if (i == 0):
-            red = brightness
-            green = t
-            blue = p
-
-        elif (i == 1):
-            red = q
-            green = brightness
-            blue = p
-        elif (i ==  2):
-            red = p
-            green = brightness
-            blue = t
-        elif (i ==  3):
-            red = p
-            green = q
-            blue = brightness
-        elif (i ==  4):
-            red = t
-            green = p
-            blue = brightness
         else:
-            red = brightness
-            green = p
-            blue = q
+            hue /= 60			# sector 0 to 5
+            i = math.floor(hue)
+            f = hue - i			# factorial part of h
+            p = brightness * ( 1 - saturation )
+            q = brightness * ( 1 - saturation * f )
+            t = brightness * ( 1 - saturation * ( 1 - f ) )
+
+            if (i == 0):
+                red = brightness
+                green = t
+                blue = p
+
+            elif (i == 1):
+                red = q
+                green = brightness
+                blue = p
+            elif (i ==  2):
+                red = p
+                green = brightness
+                blue = t
+            elif (i ==  3):
+                red = p
+                green = q
+                blue = brightness
+            elif (i ==  4):
+                red = t
+                green = p
+                blue = brightness
+            else:
+                red = brightness
+                green = p
+                blue = q
 
         return (int(red*255), int(green*255), int(blue*255))
 
