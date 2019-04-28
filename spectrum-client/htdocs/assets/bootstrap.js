@@ -36,6 +36,8 @@ window.onload = function() {
     new GameOverScene(document.getElementById("gameover"),
               Object.assign({}, options, { id: "gameover" }))
   );
+  // start at the welcome screen
+  game.switchScene("welcome");
 };
 
 function getPositionForButton(btn) {
