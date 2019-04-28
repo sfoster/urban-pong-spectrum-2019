@@ -97,6 +97,110 @@ class Game:
         """
         return True
 
+class Spectrum(Game):
+    """
+    Two player game
+    """
+
+    ATTACKER_START = 0
+    DEFENDER_START = self.controller.num_pixels
+
+    def __init__(self, controller):
+        Game.__init__(self, controller)
+        self.attacker_start = Spectrum.ATTACKER_START
+        self.defender_position = Spectrum.DEFENDER_START
+        self.attacker = None
+        self.defender = None
+        self.attacker_colors = None
+        self.defender_colors = None
+        self.attacker_location = None
+        self.defender_location = None
+        self.leds = None
+
+    def initialize(self):
+        """
+        Sets up state variables to game's INIT state.
+        :return: None
+        """
+        self.controller.state = Game_States.INIT
+        self.attacker = None
+        self.defender = None
+        self.attacker_colors = None
+        self.defender_colors = None
+        self.attacker_location = None
+        self.defender_location = None
+        self.leds = Colors.fill_array(Colors.black, self.controller.num_pixels, self.controller.bytes_per_pixel)
+
+
+    def start_round(self, attacker, defender):
+        """
+        Actions to reset game to START state
+        :return: None
+        """
+        self.attacker = attacker
+        self.defender = defender
+        self.controller.state = Game_States.START
+
+
+    def play(self):
+        """
+        Carries out one iteration of game play. This function is called in the Controller run loop
+        :return: None
+        """
+
+        # start moving colors once an attacker or defender and set their colors
+        if self.attacker_colors is not None:
+            # move colors to attackers position
+            for color in self.attacker_colors:
+                self.leds[self.attacker_location] = self.attacker_colors[0]
+                self.leds[self.attacker_location+1] = self.attacker_colors[1]
+                self.leds[self.attacker_location+2] = self.attacker_colors[2]
+            if self.attacker_location > 0:
+                self.leds[self.attacker_location-4] = Colors.black[0]
+                self.leds[self.attacker_location-3] = Colors
+
+
+    def restart(self):
+        """
+        Sets up event objects and state variables to bring game back to the INIT state
+        :return: None
+        """
+        pass
+
+
+
+    def terminate(self):
+        """
+        Sets up event objects and state variables necessary to terminate the game
+        """
+        pass
+
+
+    def action(self, data: dict):
+        """
+        Process json data dictionary received from POST request to control game play
+        :param data:
+        :return: None
+        """
+        if data['Action'] == 'pulse':
+            if data['UUID'] == self.attacker.UUID:
+                self.attacker_colors = data['Value']
+            else:
+                self.defender_colors = data['Value']
+
+        if self.attacker_colors is not None or self.defender_colors is not None:
+            self.controller.state = Game_States.PLAY
+
+
+    def is_valid_uuid(self, uuid):
+        """
+        Verifies that the uuid received with a POST request is valid for the game
+        :param uuid:
+        :return: boolean
+        """
+
+        return uuid == self.attacker.UUID or uuid == self.defender.UUID
+
 
 class SinglePlayer(Game):
     """
@@ -466,15 +570,35 @@ class Controller (threading.Thread):
         # the game
         self.game = SinglePlayer(self)
 
+        # players queues
+        self.timeout = 3 # seconds until player is removed from queue without receiving a request
+        self.south_queue = dict()
+        self.north_queue = dict()
+        self.queue_timer = None
+
+    def check_queues(self):
+        """
+        Check the queues for pending players that are no longer sending status requests
+        :return: None
+        """
+        now = datetime.datetime.now()
+        for uuid in self.north_queue.keys():
+            delta = now - self.north_queue['uuid'].timestamp
+            if delta.total_seconds > self.timeout:
+                del self.north_queue['uuid']
+        for uuid in self.south_queue.keys()
+            delta = now - self.north_queue['uuid'].timestamp
+            if delta.total_seconds() > self.timeout:
+                del self.south_queue['uuid']
+
+
     def players_in_queue(self):
         """
         Returns the number of players currently queue for game
         TODO: until player queue is implemented this method returns 0 if game is open and 1 if currently playing
         :return:
         """
-        num_players = 0
-        if self.game.players is not None:
-            num_players = len(self.game.players)
+        num_players = len(self.south_queue) + len(self.north_queue)
         return num_players
 
     def set_maximum_velocity(self, minimum_delay):
@@ -543,12 +667,14 @@ class Controller (threading.Thread):
         :param data: There are two key values expected:
             'Action' : 'wack', 'start', 'play', 'pause', 'exit', 'continue', 'wait', 'status'
                 'wack': player hits ball, value includes floating point number representing force (not currently used)
+                'join': request to join a particular player queue, value must contain either 'north' or 'south'
+                        indicating which side to play.
                 'start': player takes ownership of game, value holds either 'north' or 'south' indicating direction to
                          game. Moves game state from INIT to START.
                 'play': player puts a ball into play, value is not used. Moves game state from START to PLAY
                 'pause': player suspends game play, value is not used. Moves game state from PLAY to PAUSED
                 'continue': player continues suspended game play, value is not used. Moves game state from PAUSED to PLAY
-                'wait': Intedended for multiplayer games where player waits for another to join (not implemented)
+                'wait': Intended for multiplayer games where player waits for another to join (not implemented)
                 'status': Player requests game status, value is not used
                 'exit': Player gives up ownership of game
 
@@ -566,9 +692,9 @@ class Controller (threading.Thread):
                 'Queue': number of waiting players
         """
 
-        if not self.game.is_valid_uuid(data['UUID']):
-            msg = "Game is under control of another player, please wait until they have finished their round."
-            return {'Result': 'Error', 'Value': msg}
+        #if not self.game.is_valid_uuid(data['UUID']):
+        #    msg = "Game is under control of another player, please wait until they have finished their round."
+        #    return {'Result': 'Error', 'Value': msg}
 
         if self.game.timeout is not None:
             self.game.timeout.cancel()
@@ -590,7 +716,23 @@ class Controller (threading.Thread):
             msg += ','.join(missing_keys)
             return { 'Result': 'error', 'Value': msg }
 
-        self.game.action(data)
+        # handle player queue actions here
+        if data['Action'] == 'Join':
+            if data['Value'] not in ['north', 'south']:
+                msg = "Players can only join north or south side."
+                return { 'Result': 'error', 'Value': msg }
+            new_player = Player(data['Name'], data['UUID'])
+            if data['Value'] == 'north':
+                self.north_queue[data['UUID']] = new_player
+            else:
+                self.south_queue[data['UUID']] = new_player
+        else:
+            # remaining actions handled by the game, but first check and update timestamp
+            if data['UUID'] in self.north_queue:
+                self.north_queue[data['UUID']].update_timestamp()
+            if data['UUID'] in self.south_queue:
+                self.south_queue[data['UUID']].update_timestamp()
+            self.game.action(data)
 
         return self.status()
 
@@ -686,6 +828,7 @@ class Player:
         self.name = name
         self.uuid = uuid
         self.score = 0
+        self.timestamp = datetime.datetime.now() #time of last request from player
 
     def get_score(self):
         """
@@ -696,3 +839,10 @@ class Player:
 
     def update_score(self, points):
         self.score += points
+
+    def update_timestamp(self):
+        """
+        Sets timestamp to the current time
+        :return: None
+        """
+        self.timestamp = datetime.datetime.now()
