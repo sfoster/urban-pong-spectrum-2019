@@ -716,7 +716,7 @@ class Controller (threading.Thread):
         standby_start_time = datetime.datetime.now();
         lightstate = Colors.fill_array([0,0,0], self.num_pixels, self.bytes_per_pixel);
 
-        pix = (0, 7, 60)
+        pix1 = (0, 7, 60)
         pix2 = (50, 80, 20)
         iterations = 0
         while not self.start_event.is_set():
@@ -728,12 +728,14 @@ class Controller (threading.Thread):
                 for chan in range(self.bytes_per_pixel):
                     lightstate[pix*self.bytes_per_pixel + chan] = 6*bit # arbitrary brightness scaler
 
+            fac = (math.sin(iterations/100)+1)/2
+            import pdb; pdb.set_trace();
             pix3 = (
-                pix2[0]*math.sin(iterations),
-                pix2[1]*math.sin(iterations),
-                pix2[2]*math.sin(iterations),
+                pix2[0]*fac,
+                pix2[1]*fac,
+                pix2[2]*fac,
             )
-            pix4 = Colors.artistic_additive_blend(pix, pix3)
+            pix4 = Colors.artistic_additive_blend(pix1, pix3)
 
             for i in range(self.bytes_per_pixel):
                 lightstate[i] = pix4[i]
