@@ -19,6 +19,7 @@
     left: calc(50% - 240px);
     width: 480px;
     background-color: #fff;
+    user-select: none;
   }
   #panels {
     top: 0;
@@ -27,10 +28,10 @@
     right: 0;
     position: absolute;
     z-index: 2;
+    display: flex;
   }
   .panel {
-    height: 90px;
-    width: 480px;
+    width: 100%;
     outline: 1px dotted white;
     white-space: nowrap;
     scroll-snap-type: x mandatory;
@@ -50,6 +51,29 @@
   .color:last-child {
     margin-right: 360px;
   }
+  #pointer {
+    display: flex;
+    width: 100%;
+    position: absolute;
+    top: calc(240px - 30px);
+    z-index: 10;
+    pointer-events: none;
+  }
+  #pointer > .arrow {
+    flex: 1 1 0;
+    height: 60px;
+  }
+  #pointer > .colorpreview {
+    flex: 0 1 60px;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    border: 1px solid black;
+    pointer-events: none;
+  }
+  #pointer > .arrow:last-of-type {
+    text-align: right;
+  }
 </style>
 </head>
 <body>
@@ -58,43 +82,46 @@
   <div id="panels">
     <div class="panel">
     </div>
-    <div class="panel">
-    </div>
-    <div class="panel">
-    </div>
-    <div class="panel">
-    </div>
-    <div class="panel">
-    </div>
-    <div class="panel">
-    </div>
+  </div>
+  <div id="pointer">
+    <div class="arrow">←</div>
+    <div class="colorpreview"></div>
+    <div class="arrow">→</div>
   </div>
 </div>
 
+<script type="text/javascript" src="./assets/colorwheel.js"></script>
 <script type="text/javascript">
 "use strict";
 /*eslint quotes: [2, "double"]*/
 
-function makeColorPicker() {
-  let colors = ["red", "orange", "green", "blue"];
-  let frag = document.createDocumentFragment();
-  let nodes = colors.forEach(color => {
-    let n = document.createElement("div");
-    n.className = "color";
-    n.style.backgroundColor = color;
-    frag.appendChild(n);
-  });
-  return frag;
-}
 window.onload = function() {
   let containerNode = document.getElementById("game-container");
+  let panel = containerNode.querySelector(".panel");
+  let panelDims = panel.getBoundingClientRect();
+  let canvas = document.createElement("canvas");
+  let size = Math.min(panelDims.width, panelDims.height);
+  canvas.width = canvas.height = size;
+  panel.appendChild(canvas);
 
-  Array.from(document.querySelectorAll(".panel")).forEach(panel => {
-    panel.appendChild(makeColorPicker(panel));
-    panel.addEventListener("click", function(evt) {
-      console.log("Clicked on colorpicker", evt);
-    })
+  const colorIncrements = 15;
+  let colorWheel = window.colorWheel = new ColorWheel(canvas);
+  colorWheel.renderColorWheel(colorIncrements, size/2, size/3);
+
+  colorWheel.elem.addEventListener("wheelrotate", evt => {
+    let pointerElem = document.getElementById("pointer");
+    let currRotation = parseFloat(pointerElem.dataset.rotation) || 0;
+    let rotation = pointerElem.dataset.rotation = currRotation + evt.detail;
+    let hue = Math.round(rotation/colorIncrements) * colorIncrements;
+    console.log("rotate by %s, to %s, hue: %s", evt.detail, rotation, hue);
+
+    pointerElem.style.transform = `rotate(${rotation}deg)`;
+    let colorElem = pointerElem.querySelector(".colorpreview");
+    colorElem.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
   });
+  // panel.addEventListener("click", function(evt) {
+  //   console.log("Clicked on colorpicker", evt);
+  // })
 };
 
 </script>
