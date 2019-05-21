@@ -10,25 +10,31 @@ function degrees2radians(angle) {
   return angle * Math.PI/180;
 }
 
-function getHueFromAngle(angle) {
-  // could bias towards hues that appear distinct?
-  return angle * 180/Math.PI;
-}
-
 class ColorWheel {
   constructor(elem, options) {
     this.elem = elem;
     this.options = Object.assign({}, options);
     this.elem.addEventListener("mousedown", this);
     this.dragStartPoint = null;
+    this.currentPoint = null;
+    this.previousPoint = null;
+    this.rotationDegrees = 0;
   }
 
   get context2d() {
     return this.elem.getContext("2d");
   }
 
+  getHueFromAngle(angle) {
+    let rotation = radians2degrees(angle);
+    // could bias towards hues that appear visually distinct with the target device(s)?
+    let hue = this.wheelIncrementDegrees * Math.round(rotation/this.wheelIncrementDegrees);
+    return hue;
+  }
+
   renderColorWheel(incrementDegrees, radius, maskRadius) {
     let ctx = this.context2d;
+    this.wheelIncrementDegrees = incrementDegrees;
     let origin = this.getOriginRect();
     let centerPt = {
       x: origin.radius,
@@ -41,7 +47,7 @@ class ColorWheel {
 
     for (endAngle = incrementAngle; endAngle <= CIRCLE; endAngle += incrementAngle) {
       angle = endAngle - incrementAngle;
-      let hue = getHueFromAngle(angle);
+      let hue = this.getHueFromAngle(angle);
       let hslColor = `hsl(${hue.toFixed(2)}, 100%, 50%)`;
       ctx.fillStyle = hslColor;
       ctx.beginPath();
@@ -75,10 +81,17 @@ class ColorWheel {
   }
 
   handleMove(startPt, endPt) {
-    let resultDegrees = this.getAngleBetweenPts(startPt, endPt);
+    let delta = this.getAngleBetweenPts(startPt, endPt);
+    let rotation = this.rotationDegrees = this.rotationDegrees + delta;
+    // snap to the middle of the color step
+    let hue = this.getHueFromAngle(degrees2radians(rotation) - degrees2radians(this.wheelIncrementDegrees/2));
     this.elem.dispatchEvent(new CustomEvent("wheelrotate", {
       bubbles: true,
-      detail: resultDegrees,
+      detail: {
+        delta,
+        rotation,
+        hue,
+      }
     }));
   }
 
@@ -154,22 +167,31 @@ class ColorWheel {
     };
   }
 
-  plotPoint(pt) {
-    // pt = this.normalizeCoord(pt);
-    let ctx = this.context2d;
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = 'blue';
-    console.log("plotPoint: ", pt);
-    // let radians = Math.atan2(pt.x, pt.y);
-    // console.log("radians: ", radians);
-    // let radius = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
-    // ctx.moveTo(centerPt.x, centerPt.y);
-    // ctx.arc(centerPt.x, centerPt.y,
-    //         radius, -radians, 0);
-    // ctx.stroke();
+  startDrag(startPt, pt) {
+    this._isDragging = true;
+    this.previousPoint = startPt;
+    this.currentPoint = pt;
+    this._onNextFrame = this.onNextFrame.bind(this);
+    window.requestAnimationFrame(this._onNextFrame);
+  }
+
+  endDrag() {
+    this._isDragging = false;
+    this.currentPoint = this.previousPoint = this.dragStartPoint = null;
+  }
+
+  onNextFrame() {
+    if (this.previousPoint && this.currentPoint) {
+      this.handleMove(this.previousPoint, this.currentPoint);
+      this.previousPoint = this.currentPoint;
+    }
+    if (this._isDragging) {
+      window.requestAnimationFrame(this._onNextFrame);
+    }
   }
 
   handleEvent(event) {
+    const DRAG_THRESHOLD = 8;
     switch (event.type) {
       case "mousedown":
         this.dragStartPoint = this.getCoordFromEvent(event);
@@ -178,9 +200,13 @@ class ColorWheel {
         break;
       case "mousemove": {
         let pt = this.getCoordFromEvent(event);
-        let distance = this.distanceBetweenPoints(this.dragStartPoint, pt);
-        if (distance > 5) {
-          // this.handleMove(this.dragStartPoint, pt);
+        if (this._isDragging) {
+          this.currentPoint = pt;
+        } else {
+          let distance = this.distanceBetweenPoints(this.dragStartPoint, pt);
+          if (distance > DRAG_THRESHOLD) {
+            this.startDrag(this.dragStartPoint, pt);
+          }
         }
         break;
       }
@@ -188,10 +214,15 @@ class ColorWheel {
         let pt = this.getCoordFromEvent(event);
         let distance = this.distanceBetweenPoints(this.dragStartPoint, pt);
         // console.log(`moved from ${this.dragStartPoint.x},${this.dragStartPoint.y} to ${pt.x},${pt.y}`, distance);
-        if (distance > 5) {
-          this.handleMove(this.dragStartPoint, pt);
-        } else {
-          console.log("probably a click");
+        if (this._isDragging) {
+          this.endDrag();
+        } else if (distance <= DRAG_THRESHOLD) {
+          // jump straight to the clicked point
+          console.log("handling click on pt", pt, this.getAngleFromPt(pt));
+          this.rotationDegrees = 0;
+          // offset by 90deg.
+          // TODO: offset is off by ~10 degrees?
+          this.handleMove({ x: 1, y: 0 }, pt);
         }
         this.elem.removeEventListener("mousemove", this);
         this.elem.removeEventListener("mouseup", this);

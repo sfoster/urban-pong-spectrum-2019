@@ -62,6 +62,8 @@
   #pointer > .arrow {
     flex: 1 1 0;
     height: 60px;
+    display: flex;
+    align-items: center;
   }
   #pointer > .colorpreview {
     flex: 0 1 60px;
@@ -71,8 +73,9 @@
     border: 1px solid black;
     pointer-events: none;
   }
-  #pointer > .arrow:last-of-type {
+  #pointer > .arrow:last-of-type > span {
     text-align: right;
+    flex: 1 1 0;
   }
 </style>
 </head>
@@ -84,9 +87,9 @@
     </div>
   </div>
   <div id="pointer">
-    <div class="arrow">←</div>
+    <div class="arrow"><span>←</span></div>
     <div class="colorpreview"></div>
-    <div class="arrow">→</div>
+    <div class="arrow"><span>→</span></div>
   </div>
 </div>
 
@@ -104,24 +107,20 @@ window.onload = function() {
   canvas.width = canvas.height = size;
   panel.appendChild(canvas);
 
-  const colorIncrements = 15;
+  const colorIncrements = 30;
   let colorWheel = window.colorWheel = new ColorWheel(canvas);
   colorWheel.renderColorWheel(colorIncrements, size/2, size/3);
 
   colorWheel.elem.addEventListener("wheelrotate", evt => {
     let pointerElem = document.getElementById("pointer");
-    let currRotation = parseFloat(pointerElem.dataset.rotation) || 0;
-    let rotation = pointerElem.dataset.rotation = currRotation + evt.detail;
-    let hue = Math.round(rotation/colorIncrements) * colorIncrements;
-    console.log("rotate by %s, to %s, hue: %s", evt.detail, rotation, hue);
+    let rotation = evt.detail.rotation;
+    let hue = evt.detail.hue;
+    console.log("rotate to %s, hue: %s", rotation, hue, evt.detail);
 
     pointerElem.style.transform = `rotate(${rotation}deg)`;
     let colorElem = pointerElem.querySelector(".colorpreview");
     colorElem.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
   });
-  // panel.addEventListener("click", function(evt) {
-  //   console.log("Clicked on colorpicker", evt);
-  // })
 };
 
 </script>
