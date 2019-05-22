@@ -15,6 +15,7 @@ class ColorWheel {
     this.elem = elem;
     this.options = Object.assign({}, options);
     this.elem.addEventListener("mousedown", this);
+    this.elem.addEventListener("touchstart", this);
     this.dragStartPoint = null;
     this.currentPoint = null;
     this.previousPoint = null;
@@ -175,11 +176,6 @@ class ColorWheel {
     window.requestAnimationFrame(this._onNextFrame);
   }
 
-  endDrag() {
-    this._isDragging = false;
-    this.currentPoint = this.previousPoint = this.dragStartPoint = null;
-  }
-
   onNextFrame() {
     if (this.previousPoint && this.currentPoint) {
       this.handleMove(this.previousPoint, this.currentPoint);
@@ -192,14 +188,30 @@ class ColorWheel {
 
   handleEvent(event) {
     const DRAG_THRESHOLD = 8;
+    let pt = this.getCoordFromEvent(event.changedTouches ? event.changedTouches[0] : event);
     switch (event.type) {
+      case "touchstart":
+        if (this._isDragging || this.dragStartPoint) {
+          this.resetDrag();
+        }
+        this.dragStartPoint = pt;
+        this.elem.addEventListener("touchmove", this);
+        this.elem.addEventListener("touchend", this);
+        this.elem.addEventListener("touchcancel", this);
+        break;
+
       case "mousedown":
-        this.dragStartPoint = this.getCoordFromEvent(event);
+        if (this._isDragging || this.dragStartPoint) {
+          this.resetDrag();
+        }
+        this.dragStartPoint = pt;
         this.elem.addEventListener("mousemove", this);
         this.elem.addEventListener("mouseup", this);
         break;
+
+      case "touchmove":
       case "mousemove": {
-        let pt = this.getCoordFromEvent(event);
+        event.preventDefault();
         if (this._isDragging) {
           this.currentPoint = pt;
         } else {
@@ -210,13 +222,12 @@ class ColorWheel {
         }
         break;
       }
+
+      case "touchend":
       case "mouseup": {
-        let pt = this.getCoordFromEvent(event);
         let distance = this.distanceBetweenPoints(this.dragStartPoint, pt);
         // console.log(`moved from ${this.dragStartPoint.x},${this.dragStartPoint.y} to ${pt.x},${pt.y}`, distance);
-        if (this._isDragging) {
-          this.endDrag();
-        } else if (distance <= DRAG_THRESHOLD) {
+        if (!this._isDragging && distance <= DRAG_THRESHOLD) {
           // jump straight to the clicked point
           console.log("handling click on pt", pt, this.getAngleFromPt(pt));
           this.rotationDegrees = 0;
@@ -224,12 +235,28 @@ class ColorWheel {
           // TODO: offset is off by ~10 degrees?
           this.handleMove({ x: 1, y: 0 }, pt);
         }
-        this.elem.removeEventListener("mousemove", this);
-        this.elem.removeEventListener("mouseup", this);
+        this.resetDrag();
+        break;
+      }
+
+      case "touchcancel": {
+        this.resetDrag();
         break;
       }
     }
   }
+
+  resetDrag() {
+    this._isDragging = false;
+    this.currentPoint = this.previousPoint = this.dragStartPoint = null;
+
+    this.elem.removeEventListener("touchend", this);
+    this.elem.removeEventListener("touchmove", this);
+    this.elem.removeEventListener("touchcancel", this);
+    this.elem.removeEventListener("mousemove", this);
+    this.elem.removeEventListener("mouseup", this);
+  }
+
   uninit() {
     this.elem.removeEventListener("click", this);
   }
