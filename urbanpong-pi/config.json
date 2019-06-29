@@ -1,0 +1,5 @@
+{
+  "mqtt_broker": "",
+  "lighting_controller": "",
+  "num_pixels": 64,
+}
