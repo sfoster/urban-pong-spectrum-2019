@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ColorLaunch websocket client</title>
+  <style type="text/css">
+    body {
+      display: flex;
+   }
+   canvas {}
+  </style>
+</head>
+<body>
+<canvas width="1024" height="64"></canvas>
+
+<script type="text/javascript" src="./config.js"></script>
+<script type="text/javascript" src="./mqttws31.js"></script>
+<script type="text/javascript">
+  // build the led renderer
+  //
+  // test function to populate an array with the packed colors-as-32bit-number
+  function colorFade(startColor, endColor, rgbArray) {
+    let lastIndex = rgbArray.length - 1;
+    for (let i = 0; i<=lastIndex; i++) {
+      let propn = i/lastIndex;
+      let r = startColor.r + (endColor.r - startColor.r) * (i/lastIndex);
+      let g = startColor.g + (endColor.g - startColor.g) * (i/lastIndex);
+      let b = startColor.b + (endColor.b - startColor.b) * (i/lastIndex);
+      let a = startColor.a + (endColor.a - startColor.a) * (i/lastIndex);
+      rgbArray[i] = encodeColor(r,g,b,a);
+    }
+    console.log(rgbArray);
+  }
+
+  function encodeColor(red, green, blue, alpha) {
+    let color = alpha | (blue << 8) | (green << 16) | (red << 24);
+    return color;
+  }
+
+  function decodeColor(color) {
+    let a = (color & 0x000000FF);
+    let b =  (color & 0x0000FF00) >> 8;
+    let g = (color & 0x00FF0000) >> 16;
+    let r =   color >>> 24;
+    a /= 255;
+    return {r, g, b, a};
+  }
+
+  class RGBDisplay {
+    constructor(canvasNode, options) {
+      this.canvas = canvasNode;
+      this.ctx = canvasNode.getContext("2d");
+      // TODO: create websocket connection
+      //       each message, update the rgbBuffer
+      //       each requestAnimationFrame, render the buffer to the canvas
+      this.ctx.fillStyle = "#000000";
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ledSize = 6;
+      this.ledCount = options.ledCount;
+      this.rgbBuffer = new Array(this.ledCount);
+    }
+    start() {
+      this.running = true;
+      console.log("requestAnimationFrame loop started, call .stop() to stop");
+      this.tick();
+    }
+    stop() {
+      this.running = false;
+    }
+    update(values) {
+      this.dirty = true;
+      this.rgbBuffer.splice(0, this.rgbCount, ...values);
+    }
+    _drawDot(x, y, color) {
+      let ctx = this.ctx;
+      ctx.beginPath();
+      ctx.arc(x, y, this.ledSize, 0, 2 * Math.PI, false);
+      let {r,g,b,a} = decodeColor(color);
+      // console.log("_drawDot at: %s, %s, ", x, y, `rgba(${r}, ${g}, ${b}, ${a})`);
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
+      ctx.fill();
+    }
+    render() {
+      if (!this.dirty) {
+        return;
+      }
+      this.dirty = false;
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.fillStyle = "#000000";
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      let gap = this.canvas.width / this.ledCount;
+      let x = gap/2;
+      let y = this.canvas.height/2; // draw in the middle
+      for (let i = 0; i<this.rgbBuffer.length; i++) {
+        this._drawDot(x, y, this.rgbBuffer[i]);
+        x += gap;
+      }
+    }
+    tick() {
+      if (this.running) {
+        this.render();
+        requestAnimationFrame(() => this.tick());
+      }
+    }
+  }
+  class Listener {
+    constructor(options={}) {
+      this.VERBOSE = options.VERBOSE;
+      delete options.VERBOSE;
+      this.connectOptions = Object.assign({
+        cleanSession: true,
+        onSuccess: resp => {
+          console.log("success connecting");
+          this.onConnect();
+        },
+        onFailure: resp => {
+          console.warn(`failed to connect: ${resp.errorCode} - ${resp.errorMessage}`);
+          console.log(resp);
+        }
+      }, options);
+    }
+    init() {
+      // Create a client instance
+      // docs: http://www.eclipse.org/paho/files/jsdoc/Paho.MQTT.Client.html
+      console.log("connect mqttClient with options: ", this.connectOptions);
+      var mqttClient = new Paho.MQTT.Client(
+        this.connectOptions.hostname,
+        Number(this.connectOptions.port),
+        this.connectOptions.clientId
+      );
+      this.mqttClient = mqttClient;
+
+      // set callback handlers
+      mqttClient.onConnectionLost = this.onDisconnect.bind(this);
+
+      // resolve the connect options
+      // - from our server-generated config, and from the options passed in from the caller
+      let mqttClientConnectOptions = {};
+      let validProperties = [
+        "timeout", "userName", "password", "willMessage", "keepAliveInterval",
+        "cleanSession", "useSSL", "invocationContext", "onSuccess", "onFailure",
+        "hosts", "ports", "mqttVersion"];
+      for (let name of validProperties) {
+        if (name in this.connectOptions) {
+          mqttClientConnectOptions[name] = this.connectOptions[name];
+        }
+      }
+      console.log("init: connecting to mqtt broker with options: ", mqttClientConnectOptions);
+      mqttClient.connect(mqttClientConnectOptions);
+
+      mqttClient.onMessageArrived = (message) => {
+        this.VERBOSE && console.log("got message: ",
+                                            message.destinationName,
+                                            message.payloadString);
+        let topic = message.destinationName;
+        if (rgbDisplay.running) {
+          rgbDisplay.start();
+        }
+        rgbDisplay.update(JSON.parse(message.payloadString));
+      };
+    }
+
+    get connected() {
+      return this.mqttClient && this.mqttClient.isConnected();
+    }
+
+    get clientId() {
+      return this.connectOptions.clientId;
+    }
+
+    onConnect() {
+      let mqttClient = this.mqttClient;
+      mqttClient.subscribe(`${this.connectOptions.topic}`);
+
+      console.log("connected", { clientId: this.clientId });
+    }
+
+    onDisconnect(reason) {
+      console.log("player mqtt client disconnected", reason);
+      this.pairId = null;
+      this.mqttClient = null;
+      console.log("disconnected", { clientId: this.clientId });
+    }
+  }
+
+  // ---------------
+  const rgbDisplay = new RGBDisplay(document.querySelector("canvas"), {
+    ledCount: config.led_count,
+  });
+  const listener = new Listener({
+    clientId: "web",
+    hostname: config.ws_mqtt_hostname,
+    topic: config.mqtt_topic,
+    port: config.ws_mqtt_port,
+    VERBOSE: false,
+  });
+  listener.init();
+  rgbDisplay.start();
+
+  function testWithColors() {
+    let blue = { r: 0, g: 14, b: 255, a: 200 };
+    let red = { r: 255, g: 0, b: 0, a: 255 };
+    colorFade(red, blue, rgbDisplay.rgbBuffer);
+    rgbDisplay.render();
+  }
+</script>
+</body>
+</html>
