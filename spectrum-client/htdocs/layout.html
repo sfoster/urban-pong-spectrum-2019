@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  html {
+    --container-width: 57vh;
+    --container-height: 100vh;
+  }
+
+  @media (orientation: portrait) and (max-aspect-ratio: 4/7) {
+    html {
+      --container-width: 100vw;
+      --container-height: 175vw;
+    }
+  }
+
+  html, body {
+    margin: 0; padding: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    font-size: calc(var(--container-width) / 32);
+  }
+  body {
+    background-color: #ccc;
+  }
+
+  #game-container {
+    position: relative;
+    width: var(--container-width);
+    height: calc(var(--container-height) - 30px);
+    background-color: #fff;
+    user-select: none;
+    margin: 30px auto 0 auto;
+  }
+  #panels {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+    z-index: 2;
+    display: flex;
+  }
+  .panel {
+    width: 100%;
+    outline: 1px dotted white;
+    white-space: nowrap;
+    scroll-snap-type: x mandatory;
+    overflow-x: scroll;
+    overflow-y: hidden;
+  }
+  .panel.pickcolors {
+    display: flex;
+    flex-direction: column;
+  }
+  .panel .top {
+    outline: 1px dotted white;
+    flex: 1 1 70%;
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .panel .bottom {
+    outline: 1px dotted white;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #666;
+  }
+  .bottom .tile {
+    width: calc(var(--container-width) / 5);
+    height: calc(var(--container-width) / 5);
+    border: 2px dotted #999;
+    border-radius: 20px;
+  }
+  h1 {
+    font-size: 2rem;
+    margin: 0;
+    padding: 0.2rem 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="panels">
+    <div class="panel pickcolors">
+      <section class="top">
+        <h1>Layout &amp; Aspect Ratio</h1>
+        <p style="background-color: #ccc">Unitless text</p>
+        <p style="font-size: 1rem; background-color: #ccc">Text sized at 1rem</p>
+        <pre style="background-color: #ccc">--------------------------------------------------</pre>
+      </section>
+      <section class="bottom">
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- script type="text/javascript" src="./assets/colorwheel.js"></script -->
+<script type="text/javascript">
+"use strict";
+/*eslint quotes: [2, "double"]*/
+
+window.onload = function() {
+  let elem = document.querySelector(".panel p");
+  let dims = document.documentElement.getBoundingClientRect();
+  elem.textContent = `width: ${dims.width}, height: ${dims.height}, ratio: 1:${(dims.width/dims.height).toFixed(2)}`;
+}
+/*
+window.onload = function() {
+  let containerNode = document.getElementById("game-container");
+  let panel = containerNode.querySelector(".panel");
+  let panelDims = panel.getBoundingClientRect();
+  let canvas = document.createElement("canvas");
+  let size = Math.min(panelDims.width, panelDims.height);
+  canvas.width = canvas.height = size;
+  panel.appendChild(canvas);
+
+  const colorIncrements = 30;
+  let colorWheel = window.colorWheel = new ColorWheel(canvas);
+  colorWheel.renderColorWheel(colorIncrements, size/2, size/3);
+
+  colorWheel.elem.addEventListener("wheelrotate", evt => {
+    let pointerElem = document.getElementById("pointer");
+    let rotation = evt.detail.rotation;
+    let hue = evt.detail.hue;
+    console.log("rotate to %s, hue: %s", rotation, hue, evt.detail);
+
+    pointerElem.style.transform = `rotate(${rotation}deg)`;
+    let colorElem = pointerElem.querySelector(".colorpreview");
+    colorElem.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
+  });
+};
+*/
+</script>
+</body>
+</html>
