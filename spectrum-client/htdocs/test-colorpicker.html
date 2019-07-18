@@ -2,24 +2,36 @@
 <html>
 <head>
 <style>
+  html {
+    --container-width: 57vh;
+    --container-height: 100vh;
+  }
+
+  @media (orientation: portrait) and (max-aspect-ratio: 4/7) {
+    html {
+      --container-width: 100vw;
+      --container-height: 175vw;
+    }
+  }
+
   html, body {
     margin: 0; padding: 0;
     overflow: hidden;
     width: 100%;
     height: 100%;
+    font-size: calc(var(--container-width) / 32);
   }
   body {
     background-color: #ccc;
   }
 
   #game-container {
-    position: absolute;
-    top: 30px;
-    bottom: 0;
-    left: calc(50% - 240px);
-    width: 480px;
+    position: relative;
+    width: var(--container-width);
+    height: calc(var(--container-height) - 30px);
     background-color: #fff;
     user-select: none;
+    margin: 30px auto 0 auto;
   }
   #panels {
     top: 0;
@@ -38,44 +50,46 @@
     overflow-x: scroll;
     overflow-y: hidden;
   }
-  .color {
-    display: inline-block;
-    width: 120px;
-    height: 90px;
-    margin: 0 2px;
-    scroll-snap-align: start;
-  }
-  .color:first-child {
-    margin-left: 100px;
-  }
-  .color:last-child {
-    margin-right: 360px;
-  }
-  #pointer {
+  .panel.scene-pickcolors {
     display: flex;
-    width: 100%;
-    position: absolute;
-    top: calc(240px - 30px);
-    z-index: 10;
-    pointer-events: none;
+    flex-direction: column;
   }
-  #pointer > .arrow {
-    flex: 1 1 0;
-    height: 60px;
+  .panel .top {
+    outline: 1px dotted white;
+    flex: 1 1 70%;
+    flex-direction: column;
     display: flex;
+    justify-content: center;
     align-items: center;
   }
-  #pointer > .colorpreview {
-    flex: 0 1 60px;
-    width: 60px;
-    height: 60px;
-    border-radius: 30px;
-    border: 1px solid black;
-    pointer-events: none;
+  .panel .bottom {
+    outline: 1px dotted white;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #666;
   }
-  #pointer > .arrow:last-of-type > span {
-    text-align: right;
-    flex: 1 1 0;
+  .bottom .tile {
+    width: calc(var(--container-width) / 5);
+    height: calc(var(--container-width) / 5);
+    border: 2px dotted #999;
+    border-radius: 20px;
+  }
+  h1 {
+    font-size: 2rem;
+    margin: 0;
+    padding: 0.2rem 0;
+  }
+  .layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+  .offscreen {
+    transform: translateX(-100vw);
   }
 </style>
 </head>
@@ -83,13 +97,19 @@
 
 <div id="game-container">
   <div id="panels">
-    <div class="panel">
+    <div class="panel scene-pickcolors">
+      <section class="top">
+        <h1>Layout &amp; Aspect Ratio</h1>
+        <p style="background-color: #ccc">Unitless text</p>
+        <p style="font-size: 1rem; background-color: #ccc">Text sized at 1rem</p>
+        <pre style="background-color: #ccc">--------------------------------------------------</pre>
+      </section>
+      <section class="bottom">
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+      </section>
     </div>
-  </div>
-  <div id="pointer">
-    <div class="arrow"><span>←</span></div>
-    <div class="colorpreview"></div>
-    <div class="arrow"><span>→</span></div>
   </div>
 </div>
 
@@ -98,31 +118,79 @@
 "use strict";
 /*eslint quotes: [2, "double"]*/
 
+class ColorPicker {
+  constructor(elem, options={}) {
+    this.clickTarget = elem;
+    this.options = options;
+    let containerNode = options.containerNode || document.body;
+    let canvas = document.createElement("canvas");
+    let size;
+    canvas.classList.add("offscreen", "layer");
+    if (options.radius) {
+      size = options.radius * 2;
+    } else {
+      let dims = containerNode.getBoundingClientRect();
+      size = Math.min(dims.width, dims.height);
+    }
+    canvas.width = canvas.height = size;
+    containerNode.appendChild(canvas);
+
+    this.colorWheel = options.colorWheel || new ColorWheel(canvas, {
+      incrementDegrees: this.options.incrementDegrees || 15,
+      radius: this.options.radius || 300,
+    });
+  }
+  handleEvent(event) {
+    if (event.type == "wheelrotate") {
+      console.log("wheelrotate, got color: ")
+      let rotation = event.detail.rotation;
+      let hue = event.detail.hue;
+      console.log("wheelrotate to %s, hue: %s", rotation, hue, event.detail);
+
+      // let pointerElem = document.getElementById("pointer");
+      // pointerElem.style.transform = `rotate(${rotation}deg)`;
+      // let colorElem = pointerElem.querySelector(".colorpreview");
+      // colorElem.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
+    }
+  }
+  attachTo(elem) {
+    this.clickTarget = elem;
+    this.colorWheel.render();
+    this.colorWheel.elem.classList.remove("offscreen");
+    this.colorWheel.elem.addEventListener("wheelrotate", this);
+  }
+  detach() {
+    this.colorWheel.elem.classList.add("offscreen");
+    this.colorWheel.elem.removeEventListener("wheelrotate", this);
+  }
+}
+
+
+window.currentScene = {
+  init() {
+    let panel = document.querySelector(".scene-pickcolors");
+    let panelDims = panel.getBoundingClientRect();
+
+    this.colorPicker = new ColorPicker(null, {
+      containerNode: panel,
+      incrementDegrees: 60,
+    });
+
+    for (let tile of document.querySelectorAll(".tile")) {
+      tile.addEventListener("click", this);
+    }
+  },
+  handleEvent(event) {
+    this.colorPicker.attachTo(event.target);
+  }
+}
+
 window.onload = function() {
-  let containerNode = document.getElementById("game-container");
-  let panel = containerNode.querySelector(".panel");
-  let panelDims = panel.getBoundingClientRect();
-  let canvas = document.createElement("canvas");
-  let size = Math.min(panelDims.width, panelDims.height);
-  canvas.width = canvas.height = size;
-  panel.appendChild(canvas);
-
-  const colorIncrements = 30;
-  let colorWheel = window.colorWheel = new ColorWheel(canvas);
-  colorWheel.renderColorWheel(colorIncrements, size/2, size/3);
-
-  colorWheel.elem.addEventListener("wheelrotate", evt => {
-    let pointerElem = document.getElementById("pointer");
-    let rotation = evt.detail.rotation;
-    let hue = evt.detail.hue;
-    console.log("rotate to %s, hue: %s", rotation, hue, evt.detail);
-
-    pointerElem.style.transform = `rotate(${rotation}deg)`;
-    let colorElem = pointerElem.querySelector(".colorpreview");
-    colorElem.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
-  });
+  let elem = document.querySelector(".panel p");
+  let dims = document.documentElement.getBoundingClientRect();
+  elem.textContent = `width: ${dims.width}, height: ${dims.height}, ratio: 1:${(dims.width/dims.height).toFixed(2)}`;
+  currentScene.init();
 };
-
 </script>
 </body>
 </html>

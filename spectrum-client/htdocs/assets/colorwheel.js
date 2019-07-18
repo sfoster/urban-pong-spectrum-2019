@@ -12,7 +12,7 @@ function degrees2radians(angle) {
 
 class ColorWheel {
   constructor(elem, options) {
-    this.elem = elem;
+    this.elem = elem || document.createElement("canvas");
     this.options = Object.assign({}, options);
     this.elem.addEventListener("mousedown", this);
     this.elem.addEventListener("touchstart", this);
@@ -33,6 +33,14 @@ class ColorWheel {
     return hue;
   }
 
+  render() {
+    this.renderColorWheel(
+      this.options.incrementDegrees || 15,
+      this.options.radius || 300,
+      this.options.maskRadius || 100,
+    );
+  }
+
   renderColorWheel(incrementDegrees, radius, maskRadius) {
     let ctx = this.context2d;
     this.wheelIncrementDegrees = incrementDegrees;
@@ -51,6 +59,7 @@ class ColorWheel {
       let hue = this.getHueFromAngle(angle);
       let hslColor = `hsl(${hue.toFixed(2)}, 100%, 50%)`;
       ctx.fillStyle = hslColor;
+
       ctx.beginPath();
       ctx.moveTo(centerPt.x, centerPt.y);
       // Arc Parameters: x, y, radius, startingAngle (radians), endingAngle (radians), antiClockwise (boolean)
@@ -64,21 +73,50 @@ class ColorWheel {
     ctx.moveTo(centerPt.x, centerPt.y);
     ctx.arc(centerPt.x, centerPt.y, maskRadius, 0, CIRCLE, false);
     ctx.fill();
+
+    for(let i=0; i<12; i++) {
+      let angle = i*30;
+      let pt = this.getPtFromAngle(angle, 10);
+      console.log("Render angle: ", angle, pt.x.toFixed(2), pt.y.toFixed(2));
+    }
   }
 
-  drawArc(startDegrees, endDegrees) {
+  drawArc(startDegrees, endDegrees, radius) {
     let startAngle = degrees2radians(startDegrees);
     let endAngle = degrees2radians(endDegrees);
+    // endAngle
     let canvas = this.elem;
     let ctx = canvas.getContext("2d");
     let origin = this.getOriginRect();
-    let radius = origin.radius - 5;
-    ctx.strokeStyle = 'black';
+    if (!radius) {
+      radius = origin.radius - 5;
+    }
+    let startPt = this.getPtFromAngle(startDegrees, radius);
+    let endPt = this.getPtFromAngle(endDegrees, radius);
+    startPt = this.plotPoint(startPt, 'red');
+    endPt = this.plotPoint(endPt, 'black');
+
+    // ctx.moveTo(origin.radius, origin.radius);
     ctx.beginPath();
-    ctx.moveTo(origin.radius, origin.radius);
-    ctx.arc(origin.radius, origin.radius, radius, startAngle, endAngle, false);
+    ctx.arc(origin.radius, origin.radius, radius, startAngle, endAngle, true);
     ctx.lineTo(origin.radius, origin.radius);
+    ctx.strokeStyle = 'black';
     ctx.stroke();
+  }
+
+  plotPoint(pt, color) {
+    let origin = this.getOriginRect();
+    // convert from center (origin) - based coord
+    pt = {
+      x: pt.x + origin.halfWidth,
+      y: origin.halfHeight - pt.y,
+    };
+    let ctx = this.elem.getContext("2d");
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 2, 0, 2*Math.PI, false);
+    ctx.stroke();
+    return pt;
   }
 
   handleMove(startPt, endPt) {
@@ -111,7 +149,6 @@ class ColorWheel {
     return resultDegrees;
   }
 
-
   getAngleFromPt(pt) {
     // Note: atan2 takes y, x NOT x, y
     let horizontalAngle = Math.atan2(pt.y, pt.x) % TAU;
@@ -121,6 +158,18 @@ class ColorWheel {
       angle = TAU + angle;
     }
     return radians2degrees(angle);
+  }
+
+  getPtFromAngle(degrees, radius) {
+    if (!radius) {
+      radius = this.getOriginRect().radius;
+    }
+    let angle = degrees2radians(degrees);
+    let x = Math.cos(angle) * radius;
+    let y = Math.sin(angle) * radius;
+    return {
+      x, y
+    };
   }
 
   distanceBetweenPoints(p1, p2) {
