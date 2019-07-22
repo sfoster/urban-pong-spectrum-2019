@@ -74,8 +74,14 @@
   .bottom .tile {
     width: calc(var(--container-width) / 5);
     height: calc(var(--container-width) / 5);
-    border: 2px dotted #999;
+    background-color: rgba(0,0,0, 0.2);
     border-radius: 20px;
+  }
+  .tile.needscolor {
+    box-shadow: 0px 5px 12px 0px rgba(0,0,0,0.75);
+  }
+  .tile.selected {
+    box-shadow: 0px 5px 12px 0px rgba(255,255,255,0.35);
   }
   h1 {
     font-size: 2rem;
@@ -105,9 +111,9 @@
         <pre style="background-color: #ccc">--------------------------------------------------</pre>
       </section>
       <section class="bottom">
-        <div class="tile"></div>
-        <div class="tile"></div>
-        <div class="tile"></div>
+        <div class="tile needscolor"></div>
+        <div class="tile needscolor"></div>
+        <div class="tile needscolor"></div>
       </section>
     </div>
   </div>
@@ -146,6 +152,8 @@ class ColorPicker {
       let hue = event.detail.hue;
       console.log("colorchange to hue: %s", hue, event.detail);
       this.clickTarget.style.backgroundColor = event.detail.cssColor;
+      this.clickTarget.classList.remove("needscolor");
+      this.detach();
       // let pointerElem = document.getElementById("pointer");
       // pointerElem.style.transform = `rotate(${rotation}deg)`;
       // let colorElem = pointerElem.querySelector(".colorpreview");
@@ -153,14 +161,19 @@ class ColorPicker {
     }
   }
   attachTo(elem) {
+    if (this.clickTarget) {
+      this.detach();
+    }
     this.clickTarget = elem;
     this.colorDisc.elem.classList.remove("offscreen");
+    this.clickTarget.classList.add("selected");
     this.colorDisc.render();
     // position so the wheel is kinda behind the swatch
     // center y on the target, and x
     this.colorDisc.elem.addEventListener("colorchange", this);
   }
   detach() {
+    this.clickTarget.classList.remove("selected");
     this.colorDisc.elem.classList.add("offscreen");
     this.colorDisc.elem.removeEventListener("colorchange", this);
   }
