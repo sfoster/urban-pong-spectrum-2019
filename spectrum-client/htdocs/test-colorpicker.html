@@ -113,7 +113,7 @@
   </div>
 </div>
 
-<script type="text/javascript" src="./assets/colorwheel.js"></script>
+<script type="text/javascript" src="./assets/colordisc.js"></script>
 <script type="text/javascript">
 "use strict";
 /*eslint quotes: [2, "double"]*/
@@ -132,21 +132,20 @@ class ColorPicker {
       let dims = containerNode.getBoundingClientRect();
       size = Math.min(dims.width, dims.height);
     }
+    console.log("creating canvas with size: " + size);
     canvas.width = canvas.height = size;
     containerNode.appendChild(canvas);
 
-    this.colorWheel = options.colorWheel || new ColorWheel(canvas, {
+    this.colorDisc = options.colorWheel || new ColorDisc(canvas, {
       incrementDegrees: this.options.incrementDegrees || 15,
-      radius: this.options.radius || 300,
+      radius: size / 2 - 10,
     });
   }
   handleEvent(event) {
-    if (event.type == "wheelrotate") {
-      console.log("wheelrotate, got color: ")
-      let rotation = event.detail.rotation;
+    if (event.type == "colorchange") {
       let hue = event.detail.hue;
-      console.log("wheelrotate to %s, hue: %s", rotation, hue, event.detail);
-
+      console.log("colorchange to hue: %s", hue, event.detail);
+      this.clickTarget.style.backgroundColor = event.detail.cssColor;
       // let pointerElem = document.getElementById("pointer");
       // pointerElem.style.transform = `rotate(${rotation}deg)`;
       // let colorElem = pointerElem.querySelector(".colorpreview");
@@ -155,13 +154,15 @@ class ColorPicker {
   }
   attachTo(elem) {
     this.clickTarget = elem;
-    this.colorWheel.render();
-    this.colorWheel.elem.classList.remove("offscreen");
-    this.colorWheel.elem.addEventListener("wheelrotate", this);
+    this.colorDisc.elem.classList.remove("offscreen");
+    this.colorDisc.render();
+    // position so the wheel is kinda behind the swatch
+    // center y on the target, and x
+    this.colorDisc.elem.addEventListener("colorchange", this);
   }
   detach() {
-    this.colorWheel.elem.classList.add("offscreen");
-    this.colorWheel.elem.removeEventListener("wheelrotate", this);
+    this.colorDisc.elem.classList.add("offscreen");
+    this.colorDisc.elem.removeEventListener("colorchange", this);
   }
 }
 
@@ -173,7 +174,7 @@ window.currentScene = {
 
     this.colorPicker = new ColorPicker(null, {
       containerNode: panel,
-      incrementDegrees: 60,
+      incrementDegrees: 3,
     });
 
     for (let tile of document.querySelectorAll(".tile")) {
