@@ -126,13 +126,16 @@
 
 window.currentScene = {
   init() {
-    let panel = document.querySelector(".scene-pickcolors");
+    let panel = document.querySelector(".scene-pickcolors .top");
+    let dims = panel.getBoundingClientRect();
 
     this.colorPicker = new ColorPicker(null, {
       containerNode: panel,
       incrementDegrees: 3,
     });
-
+    this.colorPicker.render({
+      radius: dims.width/2 - 20,
+    });
     for (let tile of document.querySelectorAll(".tile")) {
       tile.addEventListener("click", this);
     }

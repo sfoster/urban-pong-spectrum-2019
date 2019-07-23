@@ -92,9 +92,24 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 #waitingforopponent {
 }
 
-#colorpicker.scene-panel {
+#colorpicker:not(.hidden).scene-panel {
   display: flex;
   flex-direction: column;
+}
+
+#colorpicker > header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#colorpicker > section.body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 #colorpicker:not(.waiting) > section.body {
@@ -134,6 +149,10 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
   box-shadow: 0px 5px 12px 0px rgba(255,255,255,0.35);
 }
 
+#colorpicker .colordisc {
+  position: relative;
+}
+
 #gameover {
 }
 
@@ -146,4 +165,14 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
   height: 20vh;
   border: 1px solid black;
   margin: 1px;
+}
+
+.colordisc {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+.offscreen {
+  transform: translateX(-100vw);
 }

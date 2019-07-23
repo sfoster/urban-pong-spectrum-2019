@@ -13,6 +13,7 @@ function degrees2radians(angle) {
 class ColorDisc {
   constructor(elem, options) {
     this.elem = elem || document.createElement("canvas");
+    this.elem.classList.add("colordisc");
     this.options = Object.assign({}, options);
     this.elem.addEventListener("click", this);
     this.currentAngle = options.currentAngle || 0;
@@ -58,11 +59,6 @@ class ColorDisc {
         hslColor, "#ffffff"
       );
     }
-    // ctx.fillStyle = 'white';
-    // ctx.beginPath();
-    // ctx.moveTo(centerPt.x, centerPt.y);
-    // ctx.arc(centeRadians.x, centerPt.y, maskRadius, 0, CIRCLE, false);
-    // ctx.fill();
   }
 
   drawSlice(origin, startAngle, endAngle, radius, innerRadius, fillColor, outlineColor) {
@@ -77,10 +73,10 @@ class ColorDisc {
     path.arc(origin.x, origin.y, innerRadius, startAngle, endAngle);
     path.lineTo(endPt.x, endPt.y);
     path.arc(origin.x, origin.y, radius, endAngle, startAngle, true);
-    // path.lineTo(innerStartPt.x, innerStartPt.y);
+
     path.closePath();
     if (fillColor) {
-      console.log("drawSlice: ", radians2degrees(startAngle), innerStartPt, fillColor);
+      // console.log("drawSlice: ", radians2degrees(startAngle), innerStartPt, fillColor);
       ctx.fillStyle = fillColor;
       ctx.fill(path);
     }
@@ -191,5 +187,54 @@ class ColorDisc {
 
   uninit() {
     this.elem.removeEventListener("click", this);
+  }
+}
+
+class ColorPicker {
+  constructor(elem, options={}) {
+    this.clickTarget = elem;
+    this.options = options;
+    this.containerNode = options.containerNode || document.body;
+    this.canvas = document.createElement("canvas");
+    this.canvas.classList.add("offscreen");
+  }
+  handleEvent(event) {
+    if (event.type == "colorchange") {
+      this.detach();
+    }
+  }
+  render(options={}) {
+    let size;
+    Object.assign(this.options, options);
+    if (this.options.radius) {
+      size = this.options.radius * 2;
+    } else {
+      let dims = this.containerNode.getBoundingClientRect();
+      size = Math.min(dims.width, dims.height);
+    }
+    let canvas = this.canvas;
+    console.log("creating canvas with size: " + size);
+    canvas.width = canvas.height = size;
+    this.containerNode.appendChild(canvas);
+
+    this.colorDisc = options.colorWheel || new ColorDisc(canvas, {
+      incrementDegrees: this.options.incrementDegrees || 15,
+      radius: size / 2 - 10,
+    });
+  }
+  attachTo(elem) {
+    if (this.clickTarget) {
+      this.detach();
+    }
+    this.clickTarget = elem;
+    this.colorDisc.elem.classList.remove("offscreen");
+    this.clickTarget.classList.add("selected");
+    this.colorDisc.render();
+    this.colorDisc.elem.addEventListener("colorchange", this);
+  }
+  detach() {
+    this.clickTarget.classList.remove("selected");
+    this.colorDisc.elem.classList.add("offscreen");
+    this.colorDisc.elem.removeEventListener("colorchange", this);
   }
 }

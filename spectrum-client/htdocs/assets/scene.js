@@ -63,18 +63,19 @@ class WaitingForOpponentScene extends Scene {
 class ColorPickerScene extends Scene {
   constructor(elem, options) {
     super(elem, options);
+  }
+  enter() {
+    super.enter();
+    console.log("Enter ColorPickerScene");
+
     let containerNode = this.elem.querySelector(".body");
     let dims = containerNode.getBoundingClientRect();
-
     this.colorPicker = new ColorPicker(null, {
       containerNode,
       incrementDegrees: 3,
       radius: dims.width / 2 - 20,
     });
-  }
-  enter() {
-    super.enter();
-    console.log("Enter ColorPickerScene");
+    this.colorPicker.render();
 
     this.elem.addEventListener("click", this);
     this.elem.addEventListener("colorchange", this);
@@ -96,6 +97,7 @@ class ColorPickerScene extends Scene {
     let tile = this.colorPicker.clickTarget;
     tile.style.backgroundColor = event.detail.cssColor;
     tile.classList.remove("needscolor");
+    this.colorPicker.detach();
   }
   sendColor(rgb) {
     if (!this.colorSent) {
