@@ -119,71 +119,14 @@
   </div>
 </div>
 
-<script type="text/javascript" src="./assets/colordisc.js"></script>
+<script type="text/javascript" src="./assets/colorpicker.js"></script>
 <script type="text/javascript">
 "use strict";
 /*eslint quotes: [2, "double"]*/
 
-class ColorPicker {
-  constructor(elem, options={}) {
-    this.clickTarget = elem;
-    this.options = options;
-    let containerNode = options.containerNode || document.body;
-    let canvas = document.createElement("canvas");
-    let size;
-    canvas.classList.add("offscreen", "layer");
-    if (options.radius) {
-      size = options.radius * 2;
-    } else {
-      let dims = containerNode.getBoundingClientRect();
-      size = Math.min(dims.width, dims.height);
-    }
-    console.log("creating canvas with size: " + size);
-    canvas.width = canvas.height = size;
-    containerNode.appendChild(canvas);
-
-    this.colorDisc = options.colorWheel || new ColorDisc(canvas, {
-      incrementDegrees: this.options.incrementDegrees || 15,
-      radius: size / 2 - 10,
-    });
-  }
-  handleEvent(event) {
-    if (event.type == "colorchange") {
-      let hue = event.detail.hue;
-      console.log("colorchange to hue: %s", hue, event.detail);
-      this.clickTarget.style.backgroundColor = event.detail.cssColor;
-      this.clickTarget.classList.remove("needscolor");
-      this.detach();
-      // let pointerElem = document.getElementById("pointer");
-      // pointerElem.style.transform = `rotate(${rotation}deg)`;
-      // let colorElem = pointerElem.querySelector(".colorpreview");
-      // colorElem.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
-    }
-  }
-  attachTo(elem) {
-    if (this.clickTarget) {
-      this.detach();
-    }
-    this.clickTarget = elem;
-    this.colorDisc.elem.classList.remove("offscreen");
-    this.clickTarget.classList.add("selected");
-    this.colorDisc.render();
-    // position so the wheel is kinda behind the swatch
-    // center y on the target, and x
-    this.colorDisc.elem.addEventListener("colorchange", this);
-  }
-  detach() {
-    this.clickTarget.classList.remove("selected");
-    this.colorDisc.elem.classList.add("offscreen");
-    this.colorDisc.elem.removeEventListener("colorchange", this);
-  }
-}
-
-
 window.currentScene = {
   init() {
     let panel = document.querySelector(".scene-pickcolors");
-    let panelDims = panel.getBoundingClientRect();
 
     this.colorPicker = new ColorPicker(null, {
       containerNode: panel,
@@ -193,9 +136,21 @@ window.currentScene = {
     for (let tile of document.querySelectorAll(".tile")) {
       tile.addEventListener("click", this);
     }
+    panel.addEventListener("colorchange", this);
   },
   handleEvent(event) {
-    this.colorPicker.attachTo(event.target);
+    switch (event.type) {
+      case "click":
+        this.colorPicker.attachTo(event.target);
+        break;
+      case "colorchange":
+        let hue = event.detail.hue;
+        console.log("colorchange to hue: %s", hue, event.detail);
+        let tile = this.colorPicker.clickTarget;
+        tile.style.backgroundColor = event.detail.cssColor;
+        tile.classList.remove("needscolor");
+        break;
+    }
   }
 }
 

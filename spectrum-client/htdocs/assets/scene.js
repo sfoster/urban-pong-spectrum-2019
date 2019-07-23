@@ -61,48 +61,48 @@ class WaitingForOpponentScene extends Scene {
 }
 
 class ColorPickerScene extends Scene {
+  constructor(elem, options) {
+    super(elem, options);
+    let containerNode = this.elem.querySelector(".body");
+    let dims = containerNode.getBoundingClientRect();
+
+    this.colorPicker = new ColorPicker(null, {
+      containerNode,
+      incrementDegrees: 3,
+      radius: dims.width / 2 - 20,
+    });
+  }
   enter() {
     super.enter();
     console.log("Enter ColorPickerScene");
-    this.listen("playerstatus");
-    this.currentRound = this.game.turnCount;
-    this.client.pollForStatus(this.player);
-    for (let btn of this.elem.querySelectorAll("button")) {
-      btn.disabled = false;
-    }
-    this.elem.classList.remove("waiting");
+
+    this.elem.addEventListener("click", this);
+    this.elem.addEventListener("colorchange", this);
   }
   exit() {
     this.colorSent = null;
     super.exit();
+    this.elem.removeEventListener("click", this);
+    this.elem.removeEventListener("colorchange", this);
   }
-  onPlayerstatus(event) {
-    let data = event.detail;
-    if (this.colorSent && data) {
-      console.log("onPlayerstatus, colorSent and got: ", data);
-      this.game.turnCount = data.CurrentRound;
-      // the server increments its CurrentRound when both north/south pulses are received and handles
-      // switch to gameover when we complete the last round
-      if (data.CurrentRound >= this.game.maxTurns) {
-        this.game.switchScene("gameover");
-        return;
-      }
-      if (data.CurrentRound > this.currentRound) {
-        this.client.stopPollingForStatus();
-        // switch to waiting scene briefly so we can re-enter this scene
-        this.game.switchScene("waiting");
-        setTimeout(() => {
-          this.game.switchScene("colorpicker");
-        }, 50);
-      }
+  onClick(event) {
+    if (event.target.classList.contains("tile")) {
+      this.colorPicker.attachTo(event.target);
     }
+  }
+  onColorchange(event) {
+    let hue = event.detail.hue;
+    console.log("colorchange to hue: %s", hue, event.detail);
+    let tile = this.colorPicker.clickTarget;
+    tile.style.backgroundColor = event.detail.cssColor;
+    tile.classList.remove("needscolor");
   }
   sendColor(rgb) {
     if (!this.colorSent) {
       this.colorSent = rgb;
-      this.client.sendPulseMessage(this.player, [rgb, rgb, rgb, rgb, rgb, rgb]);
+      // this.client.sendPulseMessage(this.player, [rgb, rgb, rgb, rgb, rgb, rgb]);
       // wait for the status message that says the round is incremented
-      this.waitForTurnEnd();
+      // this.waitForTurnEnd();
     }
   }
   waitForTurnEnd() {

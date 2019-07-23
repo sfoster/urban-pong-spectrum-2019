@@ -39,10 +39,12 @@
       <h2>Color Picker</h2>
     </header>
     <section class="body">
-      <p><button onclick="game.currentScene.sendColor([0,0,255])">Send blue</button></p>
-      <p><button onclick="game.currentScene.sendColor([0,255,0])">Send green</button></p>
+      <p>Pick some colors next</p>
     </section>
     <footer>
+      <div class="tile needscolor"></div>
+      <div class="tile needscolor"></div>
+      <div class="tile needscolor"></div>
     </footer>
   </div>
   <div id="waitingforopponent" class="scene-panel hidden">
@@ -67,7 +69,7 @@
 
 <script async src="assets/client.js"></script>
 <script async src="assets/scene.js"></script>
-<script async src="assets/colorwheel.js"></script>
+<script async src="assets/colorpicker.js"></script>
 <script async src="assets/game.js"></script>
 <script async src="assets/bootstrap.js"></script>
 

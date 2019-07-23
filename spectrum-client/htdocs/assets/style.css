@@ -1,16 +1,39 @@
+html {
+  --container-width: 57vh;
+  --container-height: 100vh;
+}
+
+@media (orientation: portrait) and (max-aspect-ratio: 4/7) {
+  html {
+    --container-width: 100vw;
+    --container-height: 175vw;
+  }
+}
+
 html, body {
-  margin:0;
-  background-color: #000;
-  color: #fff;
+  margin: 0; padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
   font-family: 'Proxima Nova Soft', 'Helvetica Neue', sans-serif;
-  font-size: 18px;
+  font-size: calc(var(--container-width) / 32);
+
+  background-color: #ccc;
+  color: #fff;
+}
+
+header > h2 {
+  margin: 0;
+  font-size: 1.25em;
 }
 
 #game-container {
-  position: absolute;
-  top: 1vh;
-  bottom: 1vh;
-  width: 100%;
+  position: relative;
+  width: var(--container-width);
+  height: calc(var(--container-height) - 30px);
+  background-color: #fff;
+  user-select: none;
+  margin: 30px auto 0 auto;
 }
 
 .scene-panel {
@@ -20,6 +43,7 @@ html, body {
   right: 0;
   position: absolute;
   z-index: 2;
+  display: flex;
 }
 
 .scene-panel {
@@ -32,19 +56,19 @@ html, body {
 
 .scene-panel > header {
   border-bottom: 2px solid #000;
-  padding: 1rem;
+  padding: 0.5rem 1rem;
   flex: 1 1 0;
 }
 
 .scene-panel > section.body {
   padding: 1rem;
-  flex: 5 1 0;
+  flex: 10 1 0;
 }
 
 .scene-panel > footer {
   border-top: 2px solid #000;
-  padding: 1rem;
-  flex: 1 1 0;
+  padding: 0.5rem 1rem;
+  flex: 2 1 0;
 }
 
 .scene-panel.hidden {
@@ -68,12 +92,46 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 #waitingforopponent {
 }
 
-#colorpicker > section.body {
-  text-align: center;
+#colorpicker.scene-panel {
+  display: flex;
+  flex-direction: column;
 }
 
 #colorpicker:not(.waiting) > section.body {
-  background-color: blue;
+  background-color: #036;
+}
+
+#colorpicker .top {
+  outline: 1px dotted white;
+  flex: 1 1 70%;
+  flex-direction: column;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#colorpicker > footer {
+  outline: 1px dotted white;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+#colorpicker .tile {
+  width: calc(var(--container-width) / 5);
+  height: calc(var(--container-width) / 5);
+  background-color: rgba(0,0,0, 0.2);
+  border-radius: 20px;
+}
+
+#colorpicker .tile.needscolor {
+  box-shadow: 0px 5px 12px 0px rgba(0,0,0,0.75);
+}
+
+#colorpicker .tile.selected {
+  box-shadow: 0px 5px 12px 0px rgba(255,255,255,0.35);
 }
 
 #gameover {
