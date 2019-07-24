@@ -65,7 +65,7 @@ class ColorPickerScene extends Scene {
     super(elem, options);
     this.pickedColors = new Array(options.colorCount);
     this.strings = {
-      colorsNeededButtonText: "Pick some colors next",
+      colorsNeededButtonText: "Select colors",
       colorsPickedButtonText: "Send!",
     }
   }
@@ -82,6 +82,7 @@ class ColorPickerScene extends Scene {
       containerNode,
       incrementDegrees: 3,
       radius: dims.width / 2 - 20,
+      innerRadius: 1,
     });
     this.colorPicker.render();
 

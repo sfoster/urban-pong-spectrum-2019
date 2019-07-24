@@ -203,6 +203,8 @@ class ColorPicker {
     this.clickTarget = elem;
     this.options = options;
     this.containerNode = options.containerNode || document.body;
+    this.boxNode = document.createElement("div");
+    this.boxNode.classList.add("pickerbox", "layer", "offscreen");
     this.canvas = document.createElement("canvas");
     this.canvas.classList.add("offscreen");
     this.scratchElem = document.createElement("span");
@@ -237,12 +239,13 @@ class ColorPicker {
     let canvas = this.canvas;
     console.log("creating canvas with size: " + size);
     canvas.width = canvas.height = size;
-    this.containerNode.appendChild(canvas);
+    this.boxNode.appendChild(canvas);
+    this.containerNode.appendChild(this.boxNode);
 
     this.colorDisc = options.colorWheel || new ColorDisc(canvas, {
       incrementDegrees: this.options.incrementDegrees || 15,
       radius: size / 2 - 10,
-      innerRadius: size/5,
+      innerRadius: this.options.hasOwnProperty('innerRadius') ? this.options.innerRadius : size/5,
     });
   }
   attachTo(elem) {
@@ -250,14 +253,14 @@ class ColorPicker {
       this.detach();
     }
     this.clickTarget = elem;
-    this.colorDisc.elem.classList.remove("offscreen");
+    this.boxNode.classList.remove("offscreen");
     this.clickTarget.classList.add("selected");
     this.colorDisc.render();
     this.colorDisc.elem.addEventListener("colordiscselection", this);
   }
   detach() {
     this.clickTarget.classList.remove("selected");
-    this.colorDisc.elem.classList.add("offscreen");
+    this.boxNode.classList.add("offscreen");
     this.colorDisc.elem.removeEventListener("colordiscselection", this);
   }
 }
