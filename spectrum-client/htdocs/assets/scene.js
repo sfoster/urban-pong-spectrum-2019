@@ -63,10 +63,18 @@ class WaitingForOpponentScene extends Scene {
 class ColorPickerScene extends Scene {
   constructor(elem, options) {
     super(elem, options);
+    this.pickedColors = new Array(options.colorCount);
+    this.strings = {
+      colorsNeededButtonText: "Pick some colors next",
+      colorsPickedButtonText: "Send!",
+    }
   }
   enter() {
     super.enter();
     console.log("Enter ColorPickerScene");
+
+    this.buttonNode = this.elem.querySelector("button.primary");
+    this.buttonNode.disabled = true;
 
     let containerNode = this.elem.querySelector(".body");
     let dims = containerNode.getBoundingClientRect();
@@ -78,27 +86,69 @@ class ColorPickerScene extends Scene {
     this.colorPicker.render();
 
     this.elem.addEventListener("click", this);
-    this.elem.addEventListener("colorchange", this);
+    this.elem.addEventListener("colorpicked", this);
+
+    for(let tileIndex = 0; tileIndex < this.options.colorCount; tileIndex++) {
+      if (this.pickedColors[tileIndex]) {
+        this.applyColorToTileAtIndex(tileIndex, this.pickedColors[tileIndex]);
+      }
+    }
   }
   exit() {
     this.colorSent = null;
+    // this.pickedColors = new Array(options.colorCount);
     super.exit();
     this.elem.removeEventListener("click", this);
-    this.elem.removeEventListener("colorchange", this);
+    this.elem.removeEventListener("colorpicked", this);
   }
   onClick(event) {
     if (event.target.classList.contains("tile")) {
       this.colorPicker.attachTo(event.target);
     }
+    if (event.target.classList.contains("tile")) {
+      this.colorPicker.attachTo(event.target);
+    }
   }
-  onColorchange(event) {
-    let hue = event.detail.hue;
-    console.log("colorchange to hue: %s", hue, event.detail);
-    let tile = this.colorPicker.clickTarget;
-    tile.style.backgroundColor = event.detail.cssColor;
+  onColorpicked(event) {
+    console.log("colorpicked event from target", event.target);
+    console.log("colorpicked to hue: %s, rgb: %o", event.detail.hue, event.detail.rgb);
+    let tile = event.target;
+    let tileIndex = Array.from(this.elem.querySelectorAll(".tile")).indexOf(tile);
+    if (tileIndex < 0 || tileIndex >= this.options.colorCount) {
+      console.warn("Unexpected tile index: " + tileIndex);
+      return;
+    }
+    this.applyColorToTileAtIndex(tileIndex, event.detail.rgb);
+  }
+  updateButton(ready) {
+    if (ready) {
+      console.log("Colors picked", this.pickedColors);
+      this.buttonNode.textContent = this.strings.colorsPickedButtonText;
+      this.buttonNode.disabled = false;
+    } else {
+      console.log("Colors still needed in", this.pickedColors);
+      this.buttonNode.textContent = this.strings.colorsNeededButtonText;
+      this.buttonNode.disabled = true;
+    }
+  }
+  applyColorToTileAtIndex(tileIndex, rgbColor="") {
+    let cssColor = `rgb(${rgbColor[0]}, ${rgbColor[1]}, ${rgbColor[2]})`;
+    let tile = this.elem.querySelectorAll(".tile")[tileIndex];
+    tile.style.backgroundColor = cssColor;
     tile.classList.remove("needscolor");
-    this.colorPicker.detach();
+
+    this.pickedColors[tileIndex] = rgbColor;
+
+    let missingColor = false;
+    for (let i = 0; i < this.pickedColors.length; i++) {
+      if (!this.pickedColors[i]) {
+        missingColor = true;
+        break;
+      }
+    }
+    this.updateButton(!missingColor);
   }
+
   sendColor(rgb) {
     if (!this.colorSent) {
       this.colorSent = rgb;

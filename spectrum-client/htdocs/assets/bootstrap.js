@@ -27,8 +27,13 @@ window.onload = function() {
 
   game.registerScene(
     "colorpicker",
-    new ColorPickerScene(document.getElementById("colorpicker"),
-              Object.assign({}, options, { id: "colorpicker" }))
+    new ColorPickerScene(
+      document.getElementById("colorpicker"),
+      Object.assign({}, options, {
+        id: "colorpicker",
+        colorCount: 3,
+      })
+    )
   );
 
   game.registerScene(
@@ -37,7 +42,7 @@ window.onload = function() {
               Object.assign({}, options, { id: "gameover" }))
   );
   // start at the welcome screen
-  game.switchScene("welcome");
+  game.switchScene("colorpicker");
 };
 
 function getPositionForButton(btn) {

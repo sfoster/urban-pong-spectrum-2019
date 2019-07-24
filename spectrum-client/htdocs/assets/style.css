@@ -85,7 +85,7 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
   text-align: center;
 }
 #welcome > section.body button {
-  font-size 4em;
+  font-size: 4em;
   width: 33vw;
 }
 
@@ -151,6 +151,16 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 
 #colorpicker .colordisc {
   position: relative;
+}
+
+#colorpicker button.primary {
+  font-size: larger;
+}
+
+#colorpicker button.primary:disabled {
+  border: none;
+  color: #fff;
+  background: transparent;
 }
 
 #gameover {

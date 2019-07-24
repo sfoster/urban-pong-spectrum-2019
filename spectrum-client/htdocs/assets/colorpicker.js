@@ -10,6 +10,15 @@ function degrees2radians(angle) {
   return angle * Math.PI/180;
 }
 
+function rgbArrayFromCSSColor(colorStr) {
+  let match = (/rgb\(([\d\.]+),\s([\d\.]+),\s([\d\.]+)/).exec(colorStr);
+  if (match) {
+    return match.slice(1,4).map(n => parseFloat(n, 10));
+  }
+  return [0,0,0];
+}
+
+
 class ColorDisc {
   constructor(elem, options) {
     this.elem = elem || document.createElement("canvas");
@@ -52,11 +61,10 @@ class ColorDisc {
       startAngle = endAngle - incrementRadians;
       let hue = this.getHueFromAngle(startAngle);
       let hslColor = this.getCssColorFromHue(hue);
-
       this.drawSlice(
         centerPt,
         startAngle, endAngle, radius, innerRadius,
-        hslColor, "#ffffff"
+        hslColor
       );
     }
   }
@@ -86,15 +94,15 @@ class ColorDisc {
     }
   }
 
-  getCssColorFromHue(hue) {
-    return `hsl(${hue.toFixed(2)}, 100%, 50%)`;
+  getCssColorFromHue(hue, sat=1, lum=0.5) {
+    return `hsl(${hue.toFixed(2)}, ${sat * 100}%, ${lum*100}%)`;
   }
 
   setCurrentAngle(angle) {
     this.currentAngle = angle;
     // snap to the middle of the color step
     let hue = this.getHueFromAngle(angle);
-    this.elem.dispatchEvent(new CustomEvent("colorchange", {
+    this.elem.dispatchEvent(new CustomEvent("colordiscselection", {
       bubbles: true,
       detail: {
         hue,
@@ -197,10 +205,24 @@ class ColorPicker {
     this.containerNode = options.containerNode || document.body;
     this.canvas = document.createElement("canvas");
     this.canvas.classList.add("offscreen");
+    this.scratchElem = document.createElement("span");
+    this.scratchElem.classList.add("offscreen");
   }
   handleEvent(event) {
-    if (event.type == "colorchange") {
+    if (event.type == "colordiscselection") {
       this.detach();
+      this.scratchElem.style.backgroundColor = event.detail.cssColor;
+      // getComputedStyle is empty, but the getter seems to convert to rgb() anyhow
+      let cssColor = this.scratchElem.style.backgroundColor;
+      let rgb = rgbArrayFromCSSColor(cssColor);
+      let detail = Object.assign({}, event.detail, {
+        cssColor,
+        rgb,
+      });
+      this.clickTarget.dispatchEvent(new CustomEvent("colorpicked", {
+        bubbles: true,
+        detail,
+      }));
     }
   }
   render(options={}) {
@@ -220,6 +242,7 @@ class ColorPicker {
     this.colorDisc = options.colorWheel || new ColorDisc(canvas, {
       incrementDegrees: this.options.incrementDegrees || 15,
       radius: size / 2 - 10,
+      innerRadius: size/5,
     });
   }
   attachTo(elem) {
@@ -230,11 +253,11 @@ class ColorPicker {
     this.colorDisc.elem.classList.remove("offscreen");
     this.clickTarget.classList.add("selected");
     this.colorDisc.render();
-    this.colorDisc.elem.addEventListener("colorchange", this);
+    this.colorDisc.elem.addEventListener("colordiscselection", this);
   }
   detach() {
     this.clickTarget.classList.remove("selected");
     this.colorDisc.elem.classList.add("offscreen");
-    this.colorDisc.elem.removeEventListener("colorchange", this);
+    this.colorDisc.elem.removeEventListener("colordiscselection", this);
   }
 }
