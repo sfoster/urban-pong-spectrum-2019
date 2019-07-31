@@ -1,10 +1,3 @@
-var message_template = {
-  'Name': null,
-  'UUID': null,
-  'Action': null,
-  'Value': null,
-}
-
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -12,84 +5,75 @@ function uuidv4() {
   });
 }
 
-var message_endpoint = 'controller/';
-var playerId = {
-  'north': uuidv4(),
-  'south': uuidv4()
-};
-
-function getPositionForButton(btn) {
-  let parent = btn.closest("section[data-position]");
-  let position = parent.dataset.position;
-  return position.toLowerCase().trim()
-}
-
-function sendGameMessage(msg, position) {
-  msg.UUID = playerId[position];
-  msg.Name = position[0].toUpperCase() + position.substring(1);
-
-  console.log("sendGameMessage:", msg);
-  return fetch(message_endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(msg),
-  });
-  // .then(response => response.json());
-}
-
-let timers = {
-  "north": null,
-  "south": null
-};
-
-function toggleStatusPolling(btn) {
-  let position = getPositionForButton(btn);
-  let timer = timers[position];
-  if (timer) {
-    clearInterval(timer);
-    timers[position] = null;
-    btn.classList.toggle("polling", false);
-  } else {
-    timers[position] = setInterval(function() {
-      sendStatusMessage(btn);
-    }, 1000);
-    btn.classList.toggle("polling", true);
+class SpectrumClient {
+  constructor(config) {
+    this.config = Object.assign({}, config);
+    this.id = uuidv4();
+    this.pollTimer = null;
   }
-}
 
-function sendJoinMessage(btn) {
-  let msg = Object.assign({}, message_template);
-  let position = getPositionForButton(btn);
-  msg.Action = 'join';
-  msg.Value = position;
-  sendGameMessage(msg, position)
-  .then(data => console.log("response: ", data))
-  .catch(error => console.error(error));
-}
+  toggleStatusPolling(force) {
+    let wasPolling = !!this.pollTimer;
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
+    if (!wasPolling || force) {
+      this.pollTimer = setInterval(() => {
+        this.queueStatus();
+      }, 1000);
+    }
+  }
 
-function sendStatusMessage(btn) {
-  let msg = Object.assign({}, message_template);
-  let position = getPositionForButton(btn);
-  msg.Action = 'status';
-  msg.Value = '';
-  sendGameMessage(msg, position)
-  .then(data => console.log("response: ", data))
-  .catch(error => console.error(error));
-}
+  join() {
+    let joinPromise = fetch(this.config.prefix + '/queue/join', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        // client details of who/what wants to join
+        clientId: this.id
+      }),
+    });
+    return joinPromise
+      .then(resp => resp.json())
+      .then(data => {
+        console.log("join response: ", data);
+      }).catch(ex => {
+        console.warn("join exception: ", ex);
+      });
+  }
 
-function sendPulseMessage(btn) {
-  let msg = Object.assign({}, message_template);
-  let position = getPositionForButton(btn);
-  msg.Action = 'pulse';
-  msg.Value = [
-    [255,0,0],
-    [0,255,0],
-    [0,0,255],
-    [0,0,255],
-    [0,255,0],
-    [255,0,0],
-  ];
-  sendGameMessage(msg, position)
-  .then(data => console.log("response: ", data))
-  .catch(error => console.error(error));
+  queueStatus() {
+    let statusPromise = fetch(this.config.prefix + '/queue');
+    return statusPromise
+      .then(resp => resp.json())
+      .then(data => {
+        console.log("queueStatus response: ", data);
+      }).catch(ex => {
+        console.warn("queueStatus exception: ", ex);
+      });
+  }
+
+  colors(colorValues = []) {
+    let colorsPromise = fetch(this.config.prefix + '/colors', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        // client details of who/what wants to join
+        clientId: this.id,
+        colorValues
+      })
+    });
+    return colorsPromise
+      .then(resp => resp.json())
+      .then(data => {
+        console.log("colors response: ", data);
+      }).catch(ex => {
+        console.warn("colors exception: ", ex);
+      });
+  }
 }

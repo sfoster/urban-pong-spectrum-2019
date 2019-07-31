@@ -23,36 +23,25 @@
   <header>
     <h1>Test client messages</h1>
   </header>
-  <section id="north" data-position="north">
-      <h2>North</h2>
+  <section>
       <ul>
         <li>
-          <button onclick="sendJoinMessage(this)">Join (North)</button>
+          <button onclick="client.join()">Join</button>
         </li>
         <li>
-          <button onclick="sendStatusMessage(this)">Status (North)</button>
-          <button id="poll-north" onclick="toggleStatusPolling(this)">▶</button>
+          <button onclick="client.queueStatus()">Status</button>
+          <button id="poll-north" onclick="client.toggleStatusPolling()">▶</button>
         </li>
         <li>
-          <button onclick="sendPulseMessage(this)">Send pulse (North)</button>
-        </li>
-      </ul>
-  </section>
-  <section id="south" data-position="south">
-      <h2>South</h2>
-      <ul>
-        <li>
-          <button onclick="sendJoinMessage(this)">Join (South)</button>
-        </li>
-        <li>
-          <button onclick="sendStatusMessage(this)">Status (South)</button>
-          <button id="poll-south" onclick="toggleStatusPolling(this)">▶</button>
-        </li>
-        <li>
-          <button onclick="sendPulseMessage(this)">Send pulse (South)</button>
+          <button onclick="client.colors([[255,0,0], [0,255,0], [0,0,255]])">Send pulse</button>
         </li>
       </ul>
   </section>
   <script src="client.js"></script>
+  <script>
+    const client = new SpectrumClient({
+      prefix: "",
+    });
+  </script>
   </body>
 </html>
