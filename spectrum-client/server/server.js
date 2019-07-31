@@ -65,6 +65,8 @@ app.post("/queue/join", isAuthenticated, api.queue.registerClient);
 // explicitly leave, remove client from any queue, unset any auth cookie
 app.post("/queue/leave", isAuthenticated, api.queue.removeClient);
 
+// request to send color values to display
+//   Request includes an array of rgb colors,
 app.put("/colors", isAuthenticated, isActive, api.colors.sendColors);
 
 app.listen(config.HTTP_PORT, function () {
