@@ -5,6 +5,7 @@
 * urbanpong-pi - code that runs on the Raspberry Pi. Imported from https://bitbucket.org/rkerndt/urbanpong-pi
 * spectrum/htdocs - code the runs in the user's mobile browser, provides the UI
 * spectrum/server - node.js/express app that accepts requests from the browser clients and publishes MQTT messages to direct the light strip animations
+* mock-ws-display - prototype browser-based mock "display" which accepts an array of rgb values over a websocket connection and renders them as a 60fps-ish animation
 
 ## UX/UI (as defined at the 2019 Hack-for-a-cause event)
 
