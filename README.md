@@ -3,9 +3,10 @@
 ## Contents
 
 * urbanpong-pi - code that runs on the Raspberry Pi. Imported from https://bitbucket.org/rkerndt/urbanpong-pi
-* spectrum-client - code the runs in the user's mobile browser, provides the UI
+* spectrum/htdocs - code the runs in the user's mobile browser, provides the UI
+* spectrum/server - node.js/express app that accepts requests from the browser clients and publishes MQTT messages to direct the light strip animations
 
-## UX/UI
+## UX/UI (as defined at the 2019 Hack-for-a-cause event)
 
 * (Source, and deliverables)[https://drive.google.com/drive/folders/1QAaZdae8Sau7kXBd7doB3cChISsqmx9x]
 * Includes following:
