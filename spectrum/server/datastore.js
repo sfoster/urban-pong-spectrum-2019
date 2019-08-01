@@ -9,8 +9,6 @@ const store = {
   queue,
   clients,
   status,
-}
+};
 
-module.exports = function() {
-  return store;
-}
+module.exports = store;

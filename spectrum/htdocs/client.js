@@ -58,7 +58,7 @@ class SpectrumClient {
 
   colors(colorValues = []) {
     let colorsPromise = fetch(this.config.prefix + '/colors', {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
