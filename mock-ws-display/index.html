@@ -7,11 +7,22 @@
     body {
       display: flex;
    }
-   canvas {}
+   #container {
+    position: relative;
+   }
+   canvas {
+    outline: 1px dotted blue;
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 1;
+   }
   </style>
 </head>
 <body>
-<canvas width="1024" height="64"></canvas>
+<div style="position: relative;">
+  <canvas id="underlay" width="1024" height="64" style="top: 120px; "></canvas>
+  <canvas id="overlay" width="1024" height="64" style="top: 120px; "></canvas>
+</div>
 
 <script type="text/javascript" src="./config.js"></script>
 <script type="text/javascript" src="./mqttws31.js"></script>
@@ -46,6 +57,10 @@
     return {r, g, b, a};
   }
 
+  function getCSSColor(color) {
+    return `rgba(${color >>> 24}, ${(color & 0x00FF0000) >> 16}, ${(color & 0x0000FF00) >> 8}, ${(color & 0x000000FF) / 255})`;
+  }
+
   class RGBDisplay {
     constructor(canvasNode, options) {
       this.canvas = canvasNode;
@@ -55,10 +70,37 @@
       //       each requestAnimationFrame, render the buffer to the canvas
       this.ctx.fillStyle = "#000000";
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ledSize = 6;
+      this.ledSize = 10;
       this.ledCount = options.ledCount;
       this.rgbBuffer = new Array(this.ledCount);
+      this.width = canvasNode.width;
+      this.height = canvasNode.height;
+      this.drawOverlay();
     }
+    drawOverlay() {
+      let canvasNode = document.querySelector("canvas#overlay");
+      let ctx = canvasNode.getContext("2d");
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, canvasNode.width, canvasNode.height);
+
+      // we want to remove what we draw, leaving transparency so we can see
+      // through to the canvas behind
+      // paths and arc turn out to perform poorly so we draw them once at startup
+      // and just draw color rects behind them each frame
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = "#ff0000";
+      let slotWidth = this.width/this.ledCount;
+      let x = 0, y=this.height/2 - this.ledSize/2;
+      for (let i=0; i<this.ledCount; i++) {
+        // draw a circle in the middle of each slot
+        ctx.beginPath();
+        ctx.arc(x + slotWidth/2, y, this.ledSize/2, 0, 2 * Math.PI, false);
+        ctx.fill();
+        x += slotWidth;
+      }
+      ctx.globalCompositeOperation = "source-over";
+    }
+
     start() {
       this.running = true;
       console.log("requestAnimationFrame loop started, call .stop() to stop");
@@ -71,29 +113,20 @@
       this.dirty = true;
       this.rgbBuffer.splice(0, this.rgbCount, ...values);
     }
-    _drawDot(x, y, color) {
-      let ctx = this.ctx;
-      ctx.beginPath();
-      ctx.arc(x, y, this.ledSize, 0, 2 * Math.PI, false);
-      let {r,g,b,a} = decodeColor(color);
-      // console.log("_drawDot at: %s, %s, ", x, y, `rgba(${r}, ${g}, ${b}, ${a})`);
-      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
-      ctx.fill();
-    }
     render() {
       if (!this.dirty) {
         return;
       }
       this.dirty = false;
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.fillStyle = "#000000";
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      let gap = this.canvas.width / this.ledCount;
-      let x = gap/2;
-      let y = this.canvas.height/2; // draw in the middle
+      this.ctx.clearRect(0, 0, this.width, this.height);
+
+      let slotWidth = this.width/this.ledCount;
+      let x = 0, y=0, color;
       for (let i = 0; i<this.rgbBuffer.length; i++) {
-        this._drawDot(x, y, this.rgbBuffer[i]);
-        x += gap;
+        color = this.rgbBuffer[i];
+        this.ctx.fillStyle = getCSSColor(this.rgbBuffer[i]);
+        this.ctx.fillRect(x, y, x+slotWidth, this.height);
+        x += slotWidth;
       }
     }
     tick() {
