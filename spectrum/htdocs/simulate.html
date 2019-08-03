@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ColorLaunch websocket client</title>
+  <style type="text/css">
+    body {
+      display: flex;
+   }
+   #container {
+    position: relative;
+   }
+   canvas {
+    position: absolute;
+    z-index: 1;
+    top: 0; left: 0;
+   }
+   #overlay {
+    z-index: 2;
+   }
+  </style>
+</head>
+<body>
+<div id="container">
+  <canvas id="underlay" width="1024" height="64"></canvas>
+  <canvas id="overlay" width="1024" height="64"></canvas>
+</div>
+
+<script type="text/javascript">
+"use strict";
+
+  const config = {
+    led_count: 130,
+    speed: 40,
+    traverse_count: 2,
+  };
+
+  // build the led renderer
+
+  function encodeColor(red, green, blue, alpha=255) {
+    let color = alpha | (blue << 8) | (green << 16) | (red << 24);
+    return color;
+  }
+
+  function decodeColor(color) {
+    return {
+      r: color >>> 24,
+      g: (color & 0x00FF0000) >> 16,
+      b: (color & 0x0000FF00) >> 8,
+      a: (color & 0x000000FF) / 255,
+    };
+  }
+
+  function getCSSColor(color) {
+    return `rgba(${color >>> 24}, ${(color & 0x00FF0000) >> 16}, ${(color & 0x0000FF00) >> 8}, ${(color & 0x000000FF) / 255})`;
+  }
+
+  class RGBDisplay {
+    constructor(canvasNode, overlayNode, options) {
+      this.canvas = canvasNode;
+      this.overlayCanvas = overlayNode;
+      this.ctx = canvasNode.getContext("2d");
+      this.ctx.fillStyle = "#000000";
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ledSize = 10;
+      this.ledCount = options.ledCount;
+      this.rgbBuffer = new Array(this.ledCount);
+      this.width = canvasNode.width;
+      this.height = canvasNode.height;
+      this.slotWidth = this.width/this.ledCount;
+      this._cssColorCache = new Map();
+      this.drawOverlay();
+    }
+    drawOverlay() {
+      let ctx = this.overlayCanvas.getContext("2d");
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      // we want to remove what we draw, leaving transparency so we can see
+      // through to the canvas behind
+      // paths and arc turn out to perform poorly so we draw them once at startup
+      // and just draw color rects behind them each frame
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = "#ff0000";
+
+      let x = 0, y=this.height/2 - this.ledSize/2;
+      for (let i=0; i<this.ledCount; i++) {
+        // draw a circle in the middle of each slot
+        ctx.beginPath();
+        ctx.arc(x + this.slotWidth/2, y, this.ledSize/2, 0, 2 * Math.PI, false);
+        ctx.fill();
+        x += this.slotWidth;
+      }
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    start() {
+      this.running = true;
+      console.log("requestAnimationFrame loop started, call .stop() to stop");
+      this.tick();
+    }
+    stop() {
+      this.running = false;
+    }
+    update(values) {
+      this.dirty = true;
+      for (let i=0; i<this.ledCount; i++) {
+        this.rgbBuffer[i] = values[i];
+      }
+    }
+    render() {
+      if (!this.dirty) {
+        return;
+      }
+      this.dirty = false;
+      this.ctx.clearRect(0, 0, this.width, this.height);
+
+      let x = 0, y=0, color;
+      for (color of this.rgbBuffer) {
+        if (!color) throw new Error("Undefined color:", color);
+        this.ctx.fillStyle = this.getCSSColor(color);
+        this.ctx.fillRect(x, y, x+this.slotWidth, this.height);
+        x += this.slotWidth;
+      }
+    }
+    getCSSColor(color) {
+      if (!this._cssColorCache.has(color)) {
+        console.log("cache miss for: " + color);
+        this._cssColorCache.set(color, getCSSColor(color));
+      }
+      return this._cssColorCache.get(color);
+    }
+    tick() {
+      if (this.running) {
+        this.render();
+        requestAnimationFrame(() => this.tick());
+      }
+    }
+  }
+
+  function sumColors(colors = []) {
+    if (!colors.length) {
+      colors[0] = BLACK;
+    }
+    let result = {
+      r: 0, g: 0, b: 0,
+    };
+    for (let c of colors) {
+      result.r = Math.min(255, result.r + c.r);
+      result.g = Math.min(255, result.g + c.g);
+      result.b = Math.min(255, result.b + c.b);
+    }
+    return result;
+  }
+
+  const BLACK = { r: 0, g: 0, b: 0 };
+  const RED_COLOR = { r: 255, g: 0, b: 0 };
+  const GREEN_COLOR = { r: 0, g: 255, b: 0 };
+
+  const stage = (function() {
+    let idx, entities;
+    let colors, color;
+    let position;
+    let seenEntities = new Set();
+    let distPerSecond = config.speed;
+    let lastIndex = config.led_count - 1;
+    let frameDist;
+    let newColor;
+
+    return {
+      activeEntities: new Set(),
+      colorValues: new Array(config.led_count),
+      positions: {},
+      length: 0,
+      placeEntity(ent, newPosition = -1) {
+        if (newPosition >= 0) {
+          ent.x = parseInt(newPosition);
+        }
+        if (Math.round(ent.x) !== ent.index) {
+          ent.index = Math.round(ent.x);
+          entities = this.positions[ent.index] || (this.positions[ent.index] = []);
+          entities.push(ent);
+        }
+        this.activeEntities.add(ent);
+      },
+      removeEntity(ent) {
+        if (!('index' in ent)) {
+          return;
+        }
+        idx = this.positions[ent.index].indexOf(ent);
+        if (idx >= 0) {
+          this.positions[ent.index].splice(idx, 1);
+        }
+        delete ent.index;
+        this.activeEntities.delete(ent);
+        return ent;
+      },
+      moveEntity(ent, toPosition = -1) {
+        // console.log("moveEntity %s from: %s to %s", ent.id, ent.index, toPosition >= 0 ? toPosition : Math.round(ent.x));
+        this.removeEntity(ent);
+        this.placeEntity(ent, toPosition);
+      },
+      update(deltaMs) {
+        seenEntities.clear();
+        for (idx = 0; idx < this.colorValues.length; idx++) {
+          colors = this.positions[idx];
+          if (colors && colors.length) {
+            newColor = colors.length ? sumColors(colors) : BLACK;
+            if (newColor && colors && colors.length > 1) {
+              console.log("collide: ", newColor);
+              // collision
+              for (let ent of colors) {
+                ent.r = newColor.r;
+                ent.g = newColor.g;
+                ent.b = newColor.b;
+              }
+            }
+            this.colorValues[idx] = encodeColor(newColor.r, newColor.g, newColor.b);
+          } else {
+            this.colorValues[idx] = encodeColor(0, 0, 0);
+          }
+        }
+
+        for (let [position, entities] of Object.entries(this.positions)) {
+          for (let ent of entities) {
+            if (seenEntities.has(ent)) {
+              continue;
+            }
+            frameDist = (ent.direction * distPerSecond * deltaMs/1000);
+            ent.x += frameDist;
+            if (ent.x >= lastIndex) {
+              ent.direction *= -1;
+              ent.x += (ent.x - lastIndex) * -1;
+              ent.laps--;
+            } else if (ent.x <= 0) {
+              ent.direction *= -1;
+              ent.x += ent.x * -1;
+              ent.laps--;
+            }
+            seenEntities.add(ent);
+            if (ent.laps) {
+              this.moveEntity(ent);
+            } else {
+              this.removeEntity(ent);
+            }
+          }
+        }
+      }
+    };
+  })();
+
+  let frameCount = 0;
+  let lastMs;
+  function loop(runMs) {
+    if (lastMs) {
+      // console.log("frame: ", runMs - lastMs);
+      tick(runMs - lastMs);
+    }
+    lastMs = runMs;
+    ++frameCount;
+    if (stage.activeEntities.size) {
+      requestAnimationFrame(loop);
+    } else {
+      tick(runMs - lastMs);
+    }
+  }
+
+  function tick(deltaMs) {
+    stage.update(deltaMs);
+    rgbDisplay.update(stage.colorValues);
+    rgbDisplay.render();
+  }
+
+  // ---------------
+  function createEntity(rgb, initialPosition = 0, direction = 1) {
+    return Object.assign({
+      x: initialPosition,
+      direction,
+      laps: 2,
+    }, rgb);
+  }
+
+  let redEntity = createEntity(RED_COLOR);
+  let greenEntity = createEntity(GREEN_COLOR, config.led_count-1, -1);
+
+  var rgbDisplay = new RGBDisplay(
+    document.querySelector("canvas#underlay"),
+    document.querySelector("canvas#overlay"),
+    {
+      ledCount: config.led_count,
+    }
+  );
+
+  stage.placeEntity(redEntity, 0);
+  loop();
+  setTimeout(() => {
+    stage.placeEntity(greenEntity, config.led_count -1);
+  }, 600)
+
+</script>
+</body>
+</html>

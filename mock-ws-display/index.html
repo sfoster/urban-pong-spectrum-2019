@@ -16,6 +16,9 @@
     top: 0; left: 0;
     z-index: 1;
    }
+   #overlay {
+    z-index: 2;
+   }
   </style>
 </head>
 <body>
@@ -65,9 +68,6 @@
     constructor(canvasNode, options) {
       this.canvas = canvasNode;
       this.ctx = canvasNode.getContext("2d");
-      // TODO: create websocket connection
-      //       each message, update the rgbBuffer
-      //       each requestAnimationFrame, render the buffer to the canvas
       this.ctx.fillStyle = "#000000";
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.ledSize = 10;
