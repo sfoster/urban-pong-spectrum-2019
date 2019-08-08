@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="./assets/layout.css">
+  <style>
+    header > h1 {
+      display: inline-block;
+    }
+    .panel {
+      padding: 10px;
+    }
+    .panel .top {
+      position: relative;
+    }
+    .colordisc {
+      position: absolute;
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="panels">
+    <div class="panel scene-pickcolors">
+      <header>
+        <h1>SVG Color Fill</h1>
+        <img src="./assets/icon-colorpicker.svg" id="picker-icon">
+      </header>
+      <section class="top">
+        <img id="output" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0ODAiIGhlaWdodD0iNDgwIj4KCjwvc3ZnPg==" width=480 height=480 style="outline: 1px solid red">
+      </section>
+      <section class="bottom">
+        <div class="tile needscolor"></div>
+        <div class="tile needscolor"></div>
+        <div class="tile needscolor"></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript" src="./assets/colorpicker.js"></script>
+<script type="text/javascript">
+"use strict";
+/*eslint quotes: [2, "double"]*/
+
+window.currentScene = {
+  init() {
+    let panel = document.querySelector(".scene-pickcolors");
+    let dims = panel.getBoundingClientRect();
+    this.colorValues = [];
+
+    this.colorPicker = new ColorPicker(null, {
+      containerNode: panel.querySelector(".top"),
+      incrementDegrees: 3,
+    });
+    this.colorPicker.render({
+      radius: dims.width/2 - 20,
+    });
+    document.querySelector("#picker-icon").addEventListener("click", this);
+    panel.addEventListener("colorpicked", this);
+
+    this.targetImage = document.querySelector("#output");
+    loadInputImage("./assets/circle-grid9.svg").then(svgDocument => {
+      this.svgImageDocument = svgDocument;
+    });
+  },
+  handleEvent(event) {
+    switch (event.type) {
+      case "click":
+        this.colorPicker.attachTo(event.target);
+        break;
+      case "colorpicked":
+        let hue = event.detail.hue;
+        console.log("colorpicked to hue: %s", hue, event.detail);
+        this.pushColor(event.detail.cssColor);
+        break;
+    }
+  },
+  pushColor(color) {
+    this.colorValues.push(color);
+    let count = this.colorValues.length;
+    if (count > 9) {
+      this.colorValues.splice(0, 3);
+    }
+    if (count >= 3) {
+      if (this.colorValues.length % 3 == 0) {
+        replaceColorsInDocument(this.svgImageDocument, this.colorValues);
+        renderImageOutput(this.svgImageDocument, this.targetImage);
+      }
+    }
+    let tiles = document.querySelectorAll(".scene-pickcolors .tile");
+    let firstTile = tiles[0];
+    let container = firstTile.parentNode;
+    console.assert(firstTile, ".tile element exists");
+    for (let i=0; i< this.colorValues.length; i++) {
+      let tile = container.children[i];
+      if (!tiles[i]) {
+        tile = container.appendChild(firstTile.cloneNode(true));
+      }
+      console.log("fill tile: ", tile, this.colorValues[i]);
+      tile.style.backgroundColor = this.colorValues[i];
+    }
+  }
+}
+
+
+function loadInputImage(src) {
+  console.log("Using image: ", src);
+  return fetch(src).then(resp => {
+    return resp.text();
+  }).then(content => {
+    let parser = new DOMParser();
+    return parser.parseFromString(content.toString(), "image/svg+xml");
+  });
+}
+
+function replaceColorsInDocument(doc, colors = [], shapeSelector = "circle") {
+  Array.from(doc.querySelectorAll(shapeSelector)).forEach((elem, idx) => {
+    let color = colors[idx % colors.length];
+    elem.setAttribute("fill", color);
+  });
+  return doc;
+}
+
+function renderImageOutput(outputDocument, outputImg) {
+  let svgString = outputDocument.documentElement.outerHTML;
+  let dataURI = "data:image/svg+xml;base64," +  btoa(svgString);
+  outputImg.src = dataURI;
+}
+
+window.onload = function() {
+  currentScene.init();
+};
+
+</script>
+</body>
+</html>

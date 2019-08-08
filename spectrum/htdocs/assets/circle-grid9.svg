@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480">
+<g fill="#e6e6e6" stroke="#999999">
+    <circle id="shape0" cx="80" cy="80" r="70"/>
+    <circle id="shape1" cx="240" cy="80" r="70"/>
+    <circle id="shape2" cx="400" cy="80" r="70"/>
+    <circle id="shape3" cx="80" cy="240" r="70"/>
+    <circle id="shape4" cx="240" cy="240" r="70"/>
+    <circle id="shape5" cx="400" cy="240" r="70"/>
+    <circle id="shape6" cx="80" cy="400" r="70"/>
+    <circle id="shape7" cx="240" cy="400" r="70"/>
+    <circle id="shape8" cx="400" cy="400" r="70"/>
+</g>
+</svg>
+
