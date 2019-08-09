@@ -42,24 +42,6 @@ class Scene {
   }
 }
 
-class WaitingForOpponentScene extends Scene {
-  enter() {
-    super.enter();
-    this.listen("playerstatus");
-    this.client.pollForStatus(this.player);
-    console.log("Enter WaitingForOpponentScene");
-  }
-  onPlayerstatus(event) {
-    let data = event.detail;
-    if (data.State == "PLAY") {
-      this.game.turnCount = data.CurrentRound;
-      console.log("onPlayerstatus, switching to play state: ", data);
-      this.client.stopPollingForStatus();
-      this.game.switchScene("colorpicker");
-    }
-  }
-}
-
 class ColorPickerScene extends Scene {
   constructor(elem, options) {
     super(elem, options);
@@ -170,14 +152,15 @@ class WelcomeScene extends Scene {
     super.enter();
     console.log("Enter WelcomeScene");
   }
-  playAs(position) {
+  play() {
     let game = this.game;
     let client = this.client;
-    game.player.position = position;
 
-    client.sendJoinMessage(game.player).then(resp => {
+    client.joinQueue().then(resp => {
       console.log("Got join response: ", resp);
-      game.switchScene("waitingforopponent");
+      game.switchScene("colorpicker");
+    }).catch(ex => {
+      console.warn("joinQueue failed: ", ex);
     });
   }
 }

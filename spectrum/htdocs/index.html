@@ -19,8 +19,8 @@
       <img src="assets/color-launch-logo.svg">
     </header>
     <section class="body">
-      <p><button onclick="game.currentScene.playAs('north')">Play as North</button></p>
-      <p><button onclick="game.currentScene.playAs('south')">Play as South</button></p>
+      <p>When you hit <em>play</em>, you'll be asked for your location. Approve the location request to send your coordinates to ColorLaunch. If you are nearby, you'll be launching colors in just a few seconds.</p>
+      <p><button onclick="game.currentScene.play()">Play</button></p>
     </section>
     <footer>
     </footer>
@@ -47,30 +47,13 @@
       <div class="tile needscolor"></div>
     </footer>
   </div>
-  <div id="waitingforopponent" class="scene-panel hidden">
-    <header>
-      <h2>Waiting for Opponent</h2>
-    </header>
-    <section class="body">
-    </section>
-    <footer>
-    </footer>
-  </div>
-  <div id="waiting" class="scene-panel hidden">
-    <header>
-      <h2>Waiting...</h2>
-    </header>
-    <section class="body">
-    </section>
-    <footer>
-    </footer>
-  </div>
 </div>
 
 <script async src="assets/client.js"></script>
 <script async src="assets/scene.js"></script>
 <script async src="assets/colorpicker.js"></script>
 <script async src="assets/game.js"></script>
+<script async src="config.js"></script>
 <script async src="assets/bootstrap.js"></script>
 
 </body>
