@@ -45,7 +45,7 @@ class Scene {
 class ColorPickerScene extends Scene {
   constructor(elem, options) {
     super(elem, options);
-    this.pickedColors = new Array(options.colorCount);
+    this.pickedColors = new Array(options.colorCount * 3);
     this.strings = {
       colorsNeededButtonText: "Pick some colors next",
       colorsPickedButtonText: "Send!",
@@ -71,29 +71,82 @@ class ColorPickerScene extends Scene {
     this.elem.addEventListener("click", this);
     this.elem.addEventListener("colorpicked", this);
 
-    for(let tileIndex = 0; tileIndex < this.options.colorCount; tileIndex++) {
+    // set userTile colors. NB stride of 3
+    for(let tileIndex = 0; tileIndex < this.options.colorCount; tileIndex+=3) {
       if (this.pickedColors[tileIndex]) {
         this.applyColorToTileAtIndex(tileIndex, this.pickedColors[tileIndex]);
       }
     }
+    this.updateTilegroups();
+    // start the heartbeat requests
+    this.client.toggleHeartbeat();
+    let heartbeatResponseTopic = "clientHeartbeat";
+    let heartbeatErrorTopic = "clientHeartbeatError";
+    this.listen(heartbeatResponseTopic);
+    this.listen(heartbeatErrorTopic);
   }
   exit() {
     this.colorSent = null;
-    // this.pickedColors = new Array(options.colorCount);
     super.exit();
     this.elem.removeEventListener("click", this);
     this.elem.removeEventListener("colorpicked", this);
   }
+  updateTilegroups() {
+    let enabledGroup;
+    let firstUncoloredTile;
+
+    for (let groupElem of this.elem.querySelectorAll(".tilegroup")) {
+      let uncoloredTile = groupElem.querySelector(".tile.needscolor");
+      if (!firstUncoloredTile && uncoloredTile) {
+        firstUncoloredTile = uncoloredTile;
+        enabledGroup = firstUncoloredTile.parentNode;
+      }
+      if (!uncoloredTile) {
+        groupElem.classList.add("complete");
+      }
+      if (groupElem == enabledGroup) {
+        groupElem.classList.remove("disabled");
+      } else {
+        groupElem.classList.add("disabled");
+      }
+    }
+  }
   onClick(event) {
     // TODO: maybe prevent re-selecting colors with .tile:not(.needscolor)
-    if (event.target.classList.contains("tile")) {
+    if (
+      event.target.classList.contains("tile") &&
+      !event.target.closest(".disabled")
+    ) {
       this.colorPicker.attachTo(event.target);
     }
   }
-  onColorpickershow(){
+  onClientHeartbeat(event) {
+    let colors = event.detail.colors;
+    if (colors) {
+      let stride = this.options.colorCount;
+      console.log("client heartbeat, colors:", colors);
+      let activeGroup = this.elem.querySelector(".tilegroup:not(.disabled)");
+      if (!activeGroup) {
+        console.warn("onClientHeartbeat, got colors but there is not active tilegroup");
+        return;
+      }
+      let tiles = activeGroup.querySelectorAll(".tile");
+      let startIndex = parseInt(tiles[0].dataset.index);
+      console.log("onClientHeartbeat, apply color to tiles: ", tiles);
+      for (let i=1; i<colors.length; i++) {
+        this.applyColorToTileAtIndex(startIndex + i, colors[i]);
+      }
+      this.updateTilegroups();
+
+    }
+  }
+  onClientHeartError(event) {
+    console.warn("client heartbeat, ex:", event.detail);
+  }
+  onColorpickershow() {
     this.pickerContainer.classList.add("active");
   }
-  onColorpickerhide(){
+  onColorpickerhide() {
     this.pickerContainer.classList.remove("active");
   }
   onColorpicked(event) {
@@ -107,27 +160,31 @@ class ColorPickerScene extends Scene {
       return;
     }
     this.applyColorToTileAtIndex(tileIndex, event.detail.rgb);
+    this.game.client.sendColor(event.detail.rgb);
   }
   applyColorToTileAtIndex(tileIndex, rgbColor="") {
     let cssColor = `rgb(${rgbColor[0]}, ${rgbColor[1]}, ${rgbColor[2]})`;
     let tile = this.elem.querySelectorAll(".tile")[tileIndex];
+    console.log("apply color: ", tile, tileIndex, rgbColor);
     tile.style.backgroundColor = cssColor;
     tile.classList.remove("needscolor");
 
     this.pickedColors[tileIndex] = rgbColor;
 
-    let missingColor = false;
-    for (let i = 0; i < this.pickedColors.length; i++) {
-      if (!this.pickedColors[i]) {
-        missingColor = true;
+    let colorIndex;
+    let colorsComplete = true;
+    for (colorIndex=0; colorIndex<this.options.colorCount * 3; colorIndex++) {
+      if (!Array.isArray(this.pickedColors[colorIndex])) {
+        colorsComplete = false;
         break;
       }
     }
-    if (!missingColor) {
-      this.game.switchScene("gameover");
+    colorsComplete &= (colorIndex == this.options.colorCount * 3);
+    if (colorsComplete) {
+      // this.game.switchScene("gameover");
+      console.info("Colors complete: ", this.pickedColors);
     }
   }
-
   sendColor(rgb) {
     if (!this.colorSent) {
       this.colorSent = rgb;
@@ -135,12 +192,6 @@ class ColorPickerScene extends Scene {
       // wait for the status message that says the round is incremented
       // this.waitForTurnEnd();
     }
-  }
-  waitForTurnEnd() {
-    for (let btn of this.elem.querySelectorAll("button")) {
-      btn.disabled = true;
-    }
-    this.elem.classList.add("waiting");
   }
 }
 

@@ -21,13 +21,35 @@ function FakeAPIMixin(Base) {
       console.log("leaveQueue as: " + this.id);
       return Promise.resolve({ status: "ok" });
     }
-    sendColors() {
-      console.log("sendColors as: " + this.id);
+    sendColor(rgbArray) {
+      let colors = this._responseColors || (this._responseColors = []);
+      let colorAnswer = [
+        255 - rgbArray[0],
+        255 - rgbArray[1],
+        255 - rgbArray[2],
+      ];
+      let mixedColor = [
+        (rgbArray[0] + colorAnswer[0]) / 2,
+        (rgbArray[1] + colorAnswer[1]) / 2,
+        (rgbArray[2] + colorAnswer[2]) / 2,
+      ];
+      colors.push(rgbArray);
+      colors.push(colorAnswer);
+      colors.push(mixedColor);
+      console.log("sendColor as: " + this.id);
       return Promise.resolve({ status: "ok" });
     }
     heartbeat() {
       console.log("heartbeat as: " + this.id);
-      return Promise.resolve({ status: "ok", position: 0 });
+      let resp = {
+        status: "ok",
+        position: 0,
+      };
+      if (this._responseColors && this._responseColors.length) {
+        resp.colors = [].concat(this._responseColors);
+        this._responseColors.length = 0;
+      }
+      return Promise.resolve(resp);
     }
   }
   return FakeAPIClient;
@@ -70,9 +92,9 @@ function HttpAPIMixin(Base) {
     leaveQueue() {
       return this._sendRequest("/queue/leave", "POST")
     }
-    sendColors(colorValues) {
+    sendColor(colorValue) {
       return this._sendRequest("/colors", "POST", null, {
-        colorValues
+        colorValues: [colorValue]
       });
     }
     heartbeat() {
@@ -85,7 +107,7 @@ function HttpAPIMixin(Base) {
 class SpectrumClient {
   constructor(config) {
     this.config = Object.assign({}, {
-      heartbeatInterval: 30000,
+      heartbeatInterval: 2000,
     }, config);
     this.id = uuidv4();
     this.pollTimer = null;
@@ -99,10 +121,32 @@ class SpectrumClient {
       this.pollTimer = null;
     }
     if (!wasPolling || force) {
-      this.heartbeat();
+      this._wrappedHeartbeat = this.wrapMethod("heartbeat");
+      console.log("heartbeatInterval: ", this.config.heartbeatInterval);
+      this._wrappedHeartbeat();
       this.pollTimer = setInterval(() => {
-        this.heartbeat();
+        this._wrappedHeartbeat();
       }, this.config.heartbeatInterval);
     }
+  }
+
+  wrapMethod(methodName) {
+    return function() {
+      this[methodName]().then(resp => {
+        let topic = "client" + methodName.charAt(0).toUpperCase() + methodName.substring(1);
+        let errorTopic = topic + "Error";
+        // console.log(methodName + " resp", topic, resp);
+        document.dispatchEvent(new CustomEvent(topic, {
+          bubbles: true,
+          detail: resp,
+        }));
+      }).catch(ex => {
+        // console.log(methodName + " ex", errorTopic, resp);
+        document.dispatchEvent(new CustomEvent(errorTopic, {
+          bubbles: true,
+          detail: ex,
+        }));
+      });
+    }.bind(this);
   }
 }
