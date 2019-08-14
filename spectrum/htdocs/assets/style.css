@@ -208,12 +208,10 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 #gameover section.body {
   padding: 0 1rem;
 }
-#gameover .colortile {
-  display: inline-block;
-  width: calc(33.3% - 4px);
-  height: 20vh;
-  border: 1px solid black;
-  margin: 1px;
+#gameover .outputImage {
+  margin: 20px auto;
+  width: 100%;
+  height: auto;
 }
 
 .colordisc {

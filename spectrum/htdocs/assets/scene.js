@@ -54,6 +54,7 @@ class ColorPickerScene extends Scene {
   enter() {
     super.enter();
     console.log("Enter ColorPickerScene");
+    this.elem.classList.remove("disabled");
 
     // initialize the tiles
     let containerNode = this.pickerContainer = this.elem.querySelector(".body");
@@ -181,8 +182,10 @@ class ColorPickerScene extends Scene {
     }
     colorsComplete &= (colorIndex == this.options.colorCount * 3);
     if (colorsComplete) {
-      // this.game.switchScene("gameover");
       console.info("Colors complete: ", this.pickedColors);
+      this.game.resultColors = this.pickedColors;
+      this.elem.classList.add("disabled"); // switch after a second but disable everything meantime
+      this.game.switchScene("gameover");
     }
   }
   sendColor(rgb) {
@@ -217,17 +220,43 @@ class GameOverScene extends Scene {
   enter() {
     super.enter();
     console.log("Enter GameOverScene");
+    this.targetImage = this.elem.querySelector(".outputImage");
+    this.loadInputImage("./assets/circle-grid9.svg").then(svgDocument => {
+      this.svgImageDocument = svgDocument;
+      this.renderResult(this.game.resultColors);
+    }).catch(ex => {
+      console.warn("GameOverScene enter, failed to load result svg image");
+    });
   }
-  renderResult(colors) {
-    let container = document.getElementById("tiles");
-    container.innerHTML = "";
-    let frag = document.createDocumentFragment();
-    for (let rgb of colors) {
-      let tile = document.createElement("div");
-      tile.classList.add("colortile");
-      tile.style.backgroundColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-      frag.appendChild(tile);
+  loadInputImage(src) {
+    console.log("Using image: ", src);
+    return fetch(src).then(resp => {
+      return resp.text();
+    }).then(content => {
+      let parser = new DOMParser();
+      return parser.parseFromString(content.toString(), "image/svg+xml");
+    });
+  }
+
+  renderResult(colorsValues) {
+    let cssColorValues = colorsValues.map(rgbArray => `rgb(${rgbArray[0]}, ${rgbArray[1]}, ${rgbArray[2]})`);
+    console.log("got cssColorValues: ", cssColorValues);
+    function replaceColorsInDocument(doc, colors = [], shapeSelector = "circle") {
+      Array.from(doc.querySelectorAll(shapeSelector)).forEach((elem, idx) => {
+        let color = colors[idx % colors.length];
+        elem.setAttribute("fill", color);
+      });
+      return doc;
     }
-    container.appendChild(frag);
+
+    function renderImageOutput(outputDocument, outputImg) {
+      let svgString = outputDocument.documentElement.outerHTML;
+      let dataURI = "data:image/svg+xml;base64," +  btoa(svgString);
+      outputImg.src = dataURI;
+    }
+
+    replaceColorsInDocument(this.svgImageDocument, cssColorValues);
+    renderImageOutput(this.svgImageDocument, this.targetImage);
+
   }
 }
