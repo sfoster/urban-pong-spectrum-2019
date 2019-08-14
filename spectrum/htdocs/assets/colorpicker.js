@@ -254,10 +254,16 @@ class ColorPicker {
     this.clickTarget.classList.add("selected");
     this.colorDisc.render();
     this.colorDisc.elem.addEventListener("colordiscselection", this);
+    this.clickTarget.dispatchEvent(new CustomEvent("colorpickershow", {
+      bubbles: true
+    }));
   }
   detach() {
     this.clickTarget.classList.remove("selected");
     this.colorDisc.elem.classList.add("offscreen");
     this.colorDisc.elem.removeEventListener("colordiscselection", this);
+    this.clickTarget.dispatchEvent(new CustomEvent("colorpickerhide", {
+      bubbles: true
+    }));
   }
 }

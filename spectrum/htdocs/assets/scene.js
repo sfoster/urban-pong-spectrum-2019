@@ -55,16 +55,17 @@ class ColorPickerScene extends Scene {
     super.enter();
     console.log("Enter ColorPickerScene");
 
-    this.buttonNode = this.elem.querySelector("button.primary");
-    this.buttonNode.disabled = true;
-
-    let containerNode = this.elem.querySelector(".body");
+    // initialize the tiles
+    let containerNode = this.pickerContainer = this.elem.querySelector(".body");
     let dims = containerNode.getBoundingClientRect();
     this.colorPicker = new ColorPicker(null, {
       containerNode,
       incrementDegrees: 3,
       radius: dims.width / 2 - 20,
     });
+    this.elem.addEventListener("colorpickershow", this);
+    this.elem.addEventListener("colorpickerhide", this);
+
     this.colorPicker.render();
 
     this.elem.addEventListener("click", this);
@@ -84,34 +85,28 @@ class ColorPickerScene extends Scene {
     this.elem.removeEventListener("colorpicked", this);
   }
   onClick(event) {
+    // TODO: maybe prevent re-selecting colors with .tile:not(.needscolor)
     if (event.target.classList.contains("tile")) {
       this.colorPicker.attachTo(event.target);
     }
-    if (event.target.classList.contains("tile")) {
-      this.colorPicker.attachTo(event.target);
-    }
+  }
+  onColorpickershow(){
+    this.pickerContainer.classList.add("active");
+  }
+  onColorpickerhide(){
+    this.pickerContainer.classList.remove("active");
   }
   onColorpicked(event) {
     console.log("colorpicked event from target", event.target);
     console.log("colorpicked to hue: %s, rgb: %o", event.detail.hue, event.detail.rgb);
     let tile = event.target;
     let tileIndex = Array.from(this.elem.querySelectorAll(".tile")).indexOf(tile);
-    if (tileIndex < 0 || tileIndex >= this.options.colorCount) {
+    // we have 3 tiles for each of the colorCount;
+    if (tileIndex < 0 || tileIndex >= this.options.colorCount * 3) {
       console.warn("Unexpected tile index: " + tileIndex);
       return;
     }
     this.applyColorToTileAtIndex(tileIndex, event.detail.rgb);
-  }
-  updateButton(ready) {
-    if (ready) {
-      console.log("Colors picked", this.pickedColors);
-      this.buttonNode.textContent = this.strings.colorsPickedButtonText;
-      this.buttonNode.disabled = false;
-    } else {
-      console.log("Colors still needed in", this.pickedColors);
-      this.buttonNode.textContent = this.strings.colorsNeededButtonText;
-      this.buttonNode.disabled = true;
-    }
   }
   applyColorToTileAtIndex(tileIndex, rgbColor="") {
     let cssColor = `rgb(${rgbColor[0]}, ${rgbColor[1]}, ${rgbColor[2]})`;
@@ -128,7 +123,9 @@ class ColorPickerScene extends Scene {
         break;
       }
     }
-    this.updateButton(!missingColor);
+    if (!missingColor) {
+      this.game.switchScene("gameover");
+    }
   }
 
   sendColor(rgb) {
