@@ -19,8 +19,8 @@
       <img src="assets/color-launch-logo.svg">
     </header>
     <section class="body">
-      <p>When you hit <em>play</em>, you'll be asked for your location. Approve the location request to send your coordinates to ColorLaunch. If you are nearby, you'll be launching colors in just a few seconds.</p>
-      <p><button onclick="game.currentScene.play()">Play</button></p>
+      <div class="body-upper"><p>When you hit <em>play</em>, you'll be asked for your location. Approve the location request to send your coordinates to ColorLaunch. If you are nearby, you'll be launching colors in just a few seconds.</p></div>
+      <div class="body-lower"><button onclick="game.currentScene.play()">Play</button></div>
     </section>
     <footer>
     </footer>
@@ -40,20 +40,14 @@
       <h2>Color Picker</h2>
     </header>
     <section class="body">
-      <div class="tilegroup">
-        <div data-index="0" class="tile needscolor userTile"></div>
-        <div data-index="1" class="tile needscolor"></div>
-        <div data-index="2" class="tile needscolor"></div>
+      <div class="body-upper">
+        <div class="tilegroup">
+          <div data-index="0" class="tile needscolor userTile"></div>
+          <div data-index="1" class="tile needscolor"></div>
+        </div>
       </div>
-      <div class="tilegroup disabled">
-        <div data-index="3" class="tile needscolor userTile"></div>
-        <div data-index="4" class="tile needscolor"></div>
-        <div data-index="5" class="tile needscolor"></div>
-      </div>
-      <div class="tilegroup disabled">
-        <div data-index="6" class="tile needscolor userTile"></div>
-        <div data-index="7" class="tile needscolor"></div>
-        <div data-index="8" class="tile needscolor"></div>
+      <div class="body-lower">
+        <button>Select 2 colors</button>
       </div>
     </section>
     <footer>

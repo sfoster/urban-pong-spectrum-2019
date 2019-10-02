@@ -21,23 +21,28 @@ function FakeAPIMixin(Base) {
       console.log("leaveQueue as: " + this.id);
       return Promise.resolve({ status: "ok" });
     }
-    sendColor(rgbArray) {
-      let colors = this._responseColors || (this._responseColors = []);
+    sendColors(rgbColors) {
+      // we expect 2 (options.colorCount) colors and mix them to return a 3rd
+      let colors = this._responseColors;
+      if (colors) {
+        colors.length = 0;
+      } else {
+         colors = this._responseColors = [];
+      }
       let colorAnswer = [
-        255 - rgbArray[0],
-        255 - rgbArray[1],
-        255 - rgbArray[2],
+        (rgbColors[0][0] + rgbColors[1][0]) / 2,
+        (rgbColors[0][1] + rgbColors[1][1]) / 2,
+        (rgbColors[0][2] + rgbColors[1][2]) / 2,
       ];
-      let mixedColor = [
-        (rgbArray[0] + colorAnswer[0]) / 2,
-        (rgbArray[1] + colorAnswer[1]) / 2,
-        (rgbArray[2] + colorAnswer[2]) / 2,
-      ];
-      colors.push(rgbArray);
+      for(let i=0; i<rgbColors.length; i++) {
+        colors.push(rgbColors[i]);
+      }
       colors.push(colorAnswer);
-      colors.push(mixedColor);
-      console.log("sendColor as: " + this.id);
-      return Promise.resolve({ status: "ok" });
+      console.log("sendColor as: " + this.id, colors);
+      return Promise.resolve({
+        status: "ok",
+        colors: [].concat(colors),
+      });
     }
     heartbeat() {
       console.log("heartbeat as: " + this.id);
@@ -92,7 +97,7 @@ function HttpAPIMixin(Base) {
     leaveQueue() {
       return this._sendRequest("/queue/leave", "POST")
     }
-    sendColor(colorValue) {
+    sendColors(colorValue) {
       return this._sendRequest("/colors", "POST", null, {
         colorValues: [colorValue]
       });

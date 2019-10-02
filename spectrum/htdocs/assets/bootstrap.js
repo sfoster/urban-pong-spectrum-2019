@@ -19,7 +19,7 @@ window.onload = function() {
       document.getElementById("colorpicker"),
       Object.assign({}, sceneArgs, {
         id: "colorpicker",
-        colorCount: 3,
+        colorCount: 2,
       })
     )
   );

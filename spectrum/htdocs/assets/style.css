@@ -64,14 +64,14 @@ header > h2 {
 }
 
 .scene-panel > section.body {
-  padding: 1rem;
-  flex: 10 1 0;
+  padding: 10px;
+  flex: 20 1 0;
 }
 
 .scene-panel > footer {
   border-top: 2px solid #000;
   padding: 0.5rem 1rem;
-  flex: 2 1 0;
+  flex: 1 1 0;
 }
 
 .scene-panel.hidden {
@@ -82,14 +82,36 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
   display: block;
 }
 
+section.body > .body-upper {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+section.body > .body-lower {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+}
+
 #welcome {
 }
 #welcome > section.body {
   text-align: center;
+  display: flex;
+  flex-direction: column;
 }
+
+#welcome > section.body > .body-upper {
+  font-size: 1.4em;
+  line-height: 1.7em;
+}
+#welcome > section.body > .body-lower {
+  display: flex;
+  flex-direction: column;
+}
+
 #welcome > section.body button {
   font-size: 4em;
-  width: 33vw;
 }
 
 #waitingforopponent {
@@ -111,37 +133,26 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+}
+
+#colorpicker > section.body button {
+  font-size: 2.5em;
+}
+#colorpicker > section.body button:disabled {
+  background: transparent;
+  border: none;
+  color: #fff;
+  align-self: center;
 }
 
 #colorpicker:not(.waiting) > section.body {
   background-color: #036;
 }
 
-#colorpicker .top {
-  outline: 1px dotted white;
-  flex: 1 1 70%;
-  flex-direction: column;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-#colorpicker > footer {
-  outline: 1px dotted white;
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-evenly;
-  align-items: center;
-}
-
 #colorpicker .tilegroup {
-  position: relative;
-  width: 94%;
-  height: var(--tile-size);
-  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
 }
 
 #colorpicker .tilegroup:not(.complete).disabled {
@@ -149,7 +160,8 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 }
 
 #colorpicker .tilegroup .tile:nth-child(1n) {
-  left: 0;
+  /*! left: 0; */
+  flex: 1 1 0;
 }
 #colorpicker .tilegroup .tile:nth-child(2n) {
   left: calc(var(--tile-size) * 1.2);
@@ -159,11 +171,12 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 }
 
 #colorpicker .tile {
-  position: absolute;
-  height: var(--tile-size);
-  width: var(--tile-size);
+  /*! position: absolute; */
+  /*! height: var(--tile-size); */
+  /*! width: var(--tile-size); */
   background-color: rgba(0,0,0, 0.2);
   border-radius: 20px;
+  margin: 1em;
 }
 
 #colorpicker .tilegroup:not(.disabled) .tile.needscolor {
@@ -176,7 +189,7 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 }
 
 #colorpicker .tile:not(.userTile).needscolor {
-  transform: translateX(var(--container-width));
+  /*! transform: translateX(var(--container-width)); */
 }
 #colorpicker .tile:not(.userTile):not(.needscolor) {
   transform: translateX(0);
@@ -215,7 +228,6 @@ body[data-scene="waiting"] .scene-panel.previous.hidden {
 }
 
 .colordisc {
-  position: absolute;
   top: 0;
   left: 0;
   z-index: 1;
