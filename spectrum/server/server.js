@@ -9,14 +9,7 @@ const api = {
 };
 
 const app = express();
-let config;
-switch (process.env.SPECTRUM_CONFIG) {
-  case "prod":
-    config = require("./config-prod");
-    break;
-  default:
-    config = require("./config");
-}
+const config = require("./config");
 
 function isAuthenticated(req, res, next) {
   if (true) {
@@ -66,7 +59,7 @@ app.post("/queue/leave", isAuthenticated, api.queue.removeClient);
 
 // request to send color values to display
 //   Request includes an array of rgb colors,
-app.post("/colors", isAuthenticated, isActive, api.colors.sendColors);
+app.post("/queue/colors", isAuthenticated, isActive, api.colors.sendColors);
 
 app.listen(config.HTTP_PORT, function () {
   console.log('Status app listening on port ' + config.HTTP_PORT + '!');
