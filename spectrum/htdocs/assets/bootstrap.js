@@ -1,7 +1,7 @@
 window.onload = function() {
   const game = window.game = new Game();
-
-  class Client extends FakeAPIMixin(SpectrumClient) {};
+  const _APIMixin = config.mockLocalAPI ? FakeAPIMixin : HttpAPIMixin;
+  class Client extends _APIMixin(SpectrumClient) {};
 
   const client =  game.client = new Client(window.config);
   const sceneArgs = {

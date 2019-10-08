@@ -10,6 +10,7 @@ class Scene {
     delete options.player;
     this.options = options;
     this._topics = new Set();
+    this._active = false;
   }
   listen(name) {
     if (this._topics.has(name)) {
@@ -23,12 +24,14 @@ class Scene {
     document.removeEventListener(name, this);
   }
   enter() {
+    this._active = true;
     this.elem.addEventListener("click", this);
     this.elem.classList.remove("hidden");
     document.body.dataset.scene = this.id;
     console.log("Entering scene: ", this.id, this);
   }
   exit() {
+    this._active = false;
     for (let topic of this._topics){
       this.removeListener(topic);
     }
@@ -88,7 +91,7 @@ class ColorPickerScene extends Scene {
     }
     this.updateAndRender();
     // start the heartbeat requests
-    this.client.toggleHeartbeat();
+    this.client.toggleHeartbeat(true);
     let heartbeatResponseTopic = "clientHeartbeat";
     let heartbeatErrorTopic = "clientHeartbeatError";
     this.listen(heartbeatResponseTopic);
@@ -132,6 +135,9 @@ class ColorPickerScene extends Scene {
     }
   }
   onClientHeartbeat(event) {
+    if (!this._active) {
+      return;
+    }
     let colors = event.detail.colors;
     if (colors) {
       console.log("client heartbeat, colors:", colors);
@@ -231,6 +237,10 @@ class GameOverScene extends Scene {
   enter() {
     super.enter();
     console.log("Enter GameOverScene");
+
+    this.client.toggleHeartbeat(false);
+    this.client.leaveQueue();
+
     this.targetImage = this.elem.querySelector(".outputImage");
     this.loadInputImage("./assets/circle-grid9.svg").then(svgDocument => {
       this.svgImageDocument = svgDocument;

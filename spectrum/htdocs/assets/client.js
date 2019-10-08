@@ -7,6 +7,28 @@ function uuidv4() {
   });
 }
 
+function mixColors(color1, color2, responseColors) {
+  responseColors[0] = color1;
+  responseColors[1] = color2;
+  responseColors[2] = [
+    (color1[0] + color2[0]) / 2,
+    (color1[1] + color2[1]) / 2,
+    (color1[2] + color2[2]) / 2,
+  ];
+  return responseColors;
+}
+
+/*
+  Spectrum clients
+  ================
+
+  * joinQueue - send join request, possibly including geolocation details
+  * leaveQueue - send request to explicitly leave the queue instead of just timing out the heartbeat
+  * getPosition - ask the server for the queue position of this client
+  * heartbeat - sendping/heartbeat, inform the server we're still active
+  * sendColors - accept 2 and mix them in client; send request with array of colors
+*/
+
 function FakeAPIMixin(Base) {
   class FakeAPIClient extends Base {
     joinQueue() {
@@ -29,16 +51,8 @@ function FakeAPIMixin(Base) {
       } else {
          colors = this._responseColors = [];
       }
-      let colorAnswer = [
-        (rgbColors[0][0] + rgbColors[1][0]) / 2,
-        (rgbColors[0][1] + rgbColors[1][1]) / 2,
-        (rgbColors[0][2] + rgbColors[1][2]) / 2,
-      ];
-      for(let i=0; i<rgbColors.length; i++) {
-        colors.push(rgbColors[i]);
-      }
-      colors.push(colorAnswer);
-      console.log("sendColor as: " + this.id, colors);
+      mixColors(rgbColors[0], rgbColors[1], colors);
+      console.log("sendColors as: " + this.id, colors);
       return Promise.resolve({
         status: "ok",
         colors: [].concat(colors),
@@ -64,42 +78,52 @@ function HttpAPIMixin(Base) {
   class HttpAPIClient extends Base {
     _sendRequest(route, method = "GET", headers = {}, body) {
       let url = this.config.prefix + route + (method == "GET" ? "/" + this.id : "");
+      console.log("_sendRequest to url", url);
       headers = Object.assign({
         'Content-Type': 'application/json',
       }, headers);
 
       if (body && (method == "POST" || method == "PUT")) {
-         JSON.stringify(Object.assign({
+         body = Object.assign({
           // client details of who/what wants to join
           clientId: this.id
-         }, body));
+         }, body);
       }
 
       let responsePromise = fetch(url, {
         method,
         headers,
-        body
+        body: JSON.stringify(body),
       });
       return responsePromise
         .then(resp => resp.json())
         .then(data => {
           console.log(route + " response: ", data);
+          return data;
         }).catch(ex => {
           console.warn(route + " exception: ", ex);
+          return ex;
         });
     }
     getPosition() {
-      return this._sendRequest("/queue", "GET");
+      return this._sendRequest("", "GET");
     }
     joinQueue() {
-      return this._sendRequest("/queue/join", "POST");
+      return this._sendRequest("/join", "POST", undefined, {});
     }
     leaveQueue() {
-      return this._sendRequest("/queue/leave", "POST")
+      return this._sendRequest("/leave", "POST", undefined, {});
     }
-    sendColors(colorValue) {
-      return this._sendRequest("/colors", "POST", null, {
-        colorValues: [colorValue]
+    sendColors(rgbColors) {
+      let colorValues = mixColors(rgbColors[0], rgbColors[1], []);
+      console.log("sendColors, colorValues: ", colorValues);
+      let resp = this._sendRequest("/colors", "POST", undefined, {
+          colorValues,
+        }
+      );
+      return resp.then(data => {
+        data.colors = colorValues;
+        return data;
       });
     }
     heartbeat() {
@@ -140,13 +164,13 @@ class SpectrumClient {
       this[methodName]().then(resp => {
         let topic = "client" + methodName.charAt(0).toUpperCase() + methodName.substring(1);
         let errorTopic = topic + "Error";
-        // console.log(methodName + " resp", topic, resp);
+        console.log(methodName + " resp", topic, resp);
         document.dispatchEvent(new CustomEvent(topic, {
           bubbles: true,
           detail: resp,
         }));
       }).catch(ex => {
-        // console.log(methodName + " ex", errorTopic, resp);
+        console.log(methodName + " ex", errorTopic, resp);
         document.dispatchEvent(new CustomEvent(errorTopic, {
           bubbles: true,
           detail: ex,
