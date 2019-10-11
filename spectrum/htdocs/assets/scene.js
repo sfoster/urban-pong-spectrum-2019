@@ -242,7 +242,7 @@ class GameOverScene extends Scene {
     this.client.leaveQueue();
 
     this.targetImage = this.elem.querySelector(".outputImage");
-    this.loadInputImage("./assets/circle-grid9.svg").then(svgDocument => {
+    this.loadInputImage("./assets/circles.svg").then(svgDocument => {
       this.svgImageDocument = svgDocument;
       this.renderResult(this.game.resultColors);
     }).catch(ex => {
@@ -263,7 +263,9 @@ class GameOverScene extends Scene {
     let cssColorValues = colorsValues.map(rgbArray => `rgb(${rgbArray[0]}, ${rgbArray[1]}, ${rgbArray[2]})`);
     console.log("got cssColorValues: ", cssColorValues);
     function replaceColorsInDocument(doc, colors = [], shapeSelector = "circle") {
-      Array.from(doc.querySelectorAll(shapeSelector)).forEach((elem, idx) => {
+      let fillElements = doc.querySelectorAll(shapeSelector);
+      console.log("matched fillElements", fillElements);
+      Array.from(fillElements).forEach((elem, idx) => {
         let color = colors[idx % colors.length];
         elem.setAttribute("fill", color);
       });
@@ -276,7 +278,7 @@ class GameOverScene extends Scene {
       outputImg.src = dataURI;
     }
 
-    replaceColorsInDocument(this.svgImageDocument, cssColorValues);
+    replaceColorsInDocument(this.svgImageDocument, cssColorValues, ".cls-1");
     renderImageOutput(this.svgImageDocument, this.targetImage);
 
   }
