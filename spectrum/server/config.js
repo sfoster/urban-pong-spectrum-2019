@@ -26,7 +26,6 @@ module.exports = {
   serveStatic: toBool(process.env.SERVE_STATIC),
   pathPrefix: process.env.PATH_PREFIX || "queue/",
 
-  MQTT_COLORS_TOPIC: '/colors',
-  MQTT_TOPIC_PREFIX: '/spectrum',
+  MQTT_TOPIC_PREFIX: `spectrum-${process.env.API_VERSION || '0.1.0'}-${process.env.INSTANCE_NAME || 'dev'}`,
   MQTT_BROKER_SPECTRUM_PASSWORD: 'xyz',
 };
