@@ -2,13 +2,53 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name=viewport content="width=device-width,initial-scale=1">
   <title>ColorLaunch websocket client</title>
   <style type="text/css">
-    body {
-      display: flex;
+  html {
+    --container-width: 57vh;
+    --container-height: 100vh;
+  }
+   html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    font-family: 'Proxima Nova Soft', 'Helvetica Neue', sans-serif;
+    font-size: calc(var(--container-width) / 24);
+    background-color: #ccc;
+    color: #fff;
    }
    #container {
     position: relative;
+    width: var(--container-width);
+    height: calc(var(--container-height) - 30px);
+    background-color: #fff;
+    user-select: none;
+    margin: 30px auto 0 auto;
+    display: flex;
+    flex-direction: column;
+   }
+   #container > section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem 0.5rem;
+   }
+   #container > pre {
+    display: block;
+    outline: 1px dotted blue;
+    flex: 5 1 auto;
+    background-color: #333;
+    color: #fff;
+    margin: 1px 0;
+    overflow: auto;
+    padding: 1rem 0.5rem;
+   }
+   button {
+    min-width: 10rem;
+    font-size: larger;
    }
    #stopButton {
     display: none;
@@ -26,8 +66,10 @@
 </head>
 <body>
 <div id="container">
-  <button id="playButton" disabled="">Check geolocation</button>
-  <button id="stopButton" disabled="">Stop</button>
+  <section>
+    <button id="playButton" disabled="">Check geolocation</button>
+    <button id="stopButton" disabled="">Stop</button>
+  </section>
   <pre id="output"></pre>
 </div>
 
@@ -127,8 +169,8 @@
     toggleLocated(false);
   }
 
-  const playButton = document.querySelector("#container > #playButton");
-  const stopButton = document.querySelector("#container > #stopButton");
+  const playButton = document.querySelector("#container #playButton");
+  const stopButton = document.querySelector("#container #stopButton");
   const geoOptions = {
     enableHighAccuracy: true,
     maximumAge        : 30000,
