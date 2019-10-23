@@ -96,33 +96,55 @@
     }
   })();
 
-  function handleLocation(latitude, longitude) {
+  function handleLocation(position) {
+    console.log("handleLocation: ", position);
+    let coords = position.coords;
     let container = document.querySelector("#container");
     container.classList.add("located");
     container.querySelector("pre").textContent = JSON.stringify({
-      latitude,
-      longitude,
-      distance: haversine({latitude, longitude}, targetCoord),
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      distance: haversine(coords, targetCoord),
     }, null, 2);
-    stopButton.disabled = false;
+    toggleLocated(true);
+  }
+
+  function toggleLocated(isLocated) {
+    if (isLocated == undefined) {
+      isLocated = playButton.disabled;
+    }
+    container.classList.toggle("located", isLocated);
+    stopButton.disabled = !isLocated;
+    playButton.disabled = isLocated;
+    if (!isLocated) {
+      navigator.geolocation.clearWatch(locationWatchID);
+    }
+  }
+
+  function handleLocationError(err) {
+    console.warn("got location error: ", err)
+    container.querySelector("pre").textContent = err.code + ": " + err.message;
+    toggleLocated(false);
   }
 
   const playButton = document.querySelector("#container > #playButton");
   const stopButton = document.querySelector("#container > #stopButton");
+  const geoOptions = {
+    enableHighAccuracy: true,
+    maximumAge        : 30000,
+    timeout           : 27000
+  };
+  let locationWatchID;
 
   if ("geolocation" in navigator) {
     /* geolocation is available */
     playButton.addEventListener("click", function(evt) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        handleLocation(position.coords.latitude, position.coords.longitude);
-      });
-      var watchID = navigator.geolocation.watchPosition(function(position) {
-        handleLocation(position.coords.latitude, position.coords.longitude);
-      });
+      navigator.geolocation.getCurrentPosition(handleLocation, handleLocationError, geoOptions);
+      locationWatchID = navigator.geolocation.watchPosition(handleLocation, handleLocationError, geoOptions);
     });
     playButton.disabled = false;
     stopButton.addEventListener("click", function(evt) {
-      document.querySelector("#container").classList.remove("located");
+      toggleLocated(false);
     });
   } else {
     /* geolocation IS NOT available */
