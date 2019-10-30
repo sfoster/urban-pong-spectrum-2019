@@ -25,7 +25,7 @@ module.exports = {
   // default lat/long is kesey sq at 44.049772,-123.092554,
   ORIGIN_LATITUDE: process.env.ORIGIN_LATITUDE || "44.049772",
   ORIGIN_LONGITUDE: process.env.ORIGIN_LONGITUDE || "-123.092554",
-  ORIGIN_THRESHOLD: process.env.ORIGIN_LATITUDE || "clientid",
+  ORIGIN_THRESHOLD: process.env.ORIGIN_THRESHOLD || "5000",
 
 
   serveStatic: toBool(process.env.SERVE_STATIC),

@@ -125,8 +125,11 @@ function HttpAPIMixin(Base) {
     getPosition() {
       return this._sendRequest("", "GET");
     }
-    joinQueue() {
-      return this._sendRequest("/join", "POST", undefined, {});
+    joinQueue(coords) {
+      console.log("Sending joinQueue request with coords: ", coords);
+      return this._sendRequest("/join", "POST", undefined, {
+        coords
+      });
     }
     leaveQueue() {
       return this._sendRequest("/leave", "POST", undefined, {});

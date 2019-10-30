@@ -14,12 +14,14 @@
 
 <body>
 <div id="game-container">
+  <div id="message" class="hidden"><section class="message-body"></section></div>
   <div id="welcome" class="scene-panel hidden">
     <header>
       <img src="assets/color-launch-logo.svg">
     </header>
     <section class="body">
-      <div class="body-upper"><p>When you hit <em>play</em>, you'll be asked for your location. Approve the location request to send your coordinates to ColorLaunch. If you are nearby, you'll be launching colors in just a few seconds.</p></div>
+      <div class="body-upper greeting"><p>When you hit <em>play</em>, you'll be asked for your location. Approve the location request to send your coordinates to ColorLaunch. If you are nearby, you'll be launching colors in just a few seconds.</p></div>
+      <div class="body-upper nolocation hidden"><p>It doesnt look like location services are available or enabled. We need your approximate coordinates to play ColorLaunch.</p></div>
       <div class="body-lower"><button onclick="game.currentScene.play()">Play</button></div>
     </section>
     <footer>

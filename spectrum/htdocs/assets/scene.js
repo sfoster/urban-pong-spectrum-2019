@@ -223,17 +223,48 @@ class WelcomeScene extends Scene {
   play() {
     let game = this.game;
     let client = this.client;
+    let playButton = this.elem.querySelector("button");
 
-    client.joinQueue().then(resp => {
-      console.log("Got join response: ", resp);
-      if (resp.error) {
-        console.warn("joinQueue refused: ", resp);
-      } else {
-        game.switchScene("colorpicker");
+    if ("geolocation" in navigator) {
+      /* geolocation is available */
+      const geoOptions = {
+        enableHighAccuracy: true,
+        maximumAge        : 30000,
+        timeout           : 27000
+      };
+
+      this.elem.querySelector(".nolocation").classList.add("hidden");
+      this.elem.querySelector(".greeting").classList.remove("hidden");
+
+      function gotLocation(position) {
+        client.joinQueue({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }).then(resp => {
+          console.log("Got join response: ", resp);
+          if (resp.error) {
+            console.warn("joinQueue refused: ", resp);
+            game.showMessage(resp.message);
+          } else {
+            game.switchScene("colorpicker");
+          }
+        }).catch(ex => {
+          console.warn("joinQueue failed: ", ex);
+          game.showMessage(ex.message);
+        });
       }
-    }).catch(ex => {
-      console.warn("joinQueue failed: ", ex);
-    });
+
+      navigator.geolocation.getCurrentPosition(gotLocation, function(err) {
+        game.showMessage(err.message);
+      }, geoOptions);
+      // TODO: add watch so we can send the current value in all requests during gameplay
+      // locationWatchID = navigator.geolocation.watchPosition(handleLocation, handleLocationError, geoOptions);
+    } else {
+      /* geolocation IS NOT available */
+      playButton.disabled = true;
+      this.elem.querySelector(".nolocation").classList.remove("hidden");
+      this.elem.querySelector(".greeting").classList.add("hidden");
+    }
   }
 }
 

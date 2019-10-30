@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const path = require('path');
 const store = require('./datastore');
+const haversine = require('./haversine');
+
 const api = {
   queue: require('./api/queue'),
   colors: require('./api/colors'),
@@ -40,7 +42,7 @@ function denyRequest(reason, req, res) {
 function getDistance(coords) {
   let targetCoord = {
     latitude: config.ORIGIN_LATITUDE,
-    longitude: ORIGIN_LONGITUDE,
+    longitude: config.ORIGIN_LONGITUDE,
   }
   return haversine(coords, targetCoord, {
     unit: "meter",

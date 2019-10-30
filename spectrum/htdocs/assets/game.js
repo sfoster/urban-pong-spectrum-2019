@@ -1,10 +1,11 @@
 class Game {
   constructor(elem, options = {}) {
-    this.elem = elem;
+    this.elem = elem || document.body;
     this.options = options;
     this.turnCount = 0;
     this.scenes = {};
     this.currentScene = null;
+    this.messageElem = null;
   }
   registerScene(name, scene) {
     this.scenes[name] = scene;
@@ -26,5 +27,19 @@ class Game {
     }
     this.currentScene = this.scenes[name];
     this.currentScene.enter();
+  }
+  showMessage(message) {
+    let elem = this.elem.querySelector("#message");
+    elem.querySelector(".message-body").textContent = message;
+    elem.classList.remove("hidden");
+    if (!this.messageElem) {
+      this.messageElem = elem;
+      this.messageElem.addEventListener("click", this);
+    }
+  }
+  handleEvent(event) {
+    if (event.type == "click" && event.target == this.messageElem) {
+      this.messageElem.classList.add("hidden");
+    }
   }
 }
