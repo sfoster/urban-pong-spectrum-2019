@@ -22,6 +22,11 @@ module.exports = {
   COOKIE_SECRET: process.env.COOKIE_SECRET || 'somesecret',
   CLIENT_ID: process.env.CLIENT_ID || "clientid",
   HTTP_PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : 3000,
+  // default lat/long is kesey sq at 44.049772,-123.092554,
+  ORIGIN_LATITUDE: process.env.ORIGIN_LATITUDE || "44.049772",
+  ORIGIN_LONGITUDE: process.env.ORIGIN_LONGITUDE || "-123.092554",
+  ORIGIN_THRESHOLD: process.env.ORIGIN_LATITUDE || "clientid",
+
 
   serveStatic: toBool(process.env.SERVE_STATIC),
   pathPrefix: process.env.PATH_PREFIX || "queue/",

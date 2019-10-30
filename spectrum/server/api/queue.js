@@ -26,7 +26,7 @@ module.exports = {
     res.json({ position });
   },
   addClient(req, res) {
-    let clientId = req.body.clientId;
+    let clientId = req.sessionID;
     if (!clientId) {
       res.status(500).json({
         error: `Missing required "clientId" param`,
@@ -49,10 +49,10 @@ module.exports = {
     }));
   },
   removeClient(req, res) {
-    let clientId = req.body.clientId;
+    let clientId = req.sessionID;
     if (!clientId) {
       res.status(500).json({
-        error: `Missing required "clientId" property`,
+        error: `Unknown client`,
       });
       return;
     }
@@ -62,6 +62,9 @@ module.exports = {
     }
     store.clients.delete(clientId);
     res.json({ status: "ok" });
+  },
+  hasClient(req, res) {
+    return store.clients.has(req.sessionID);
   }
 };
 
