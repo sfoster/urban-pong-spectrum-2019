@@ -80,6 +80,7 @@ function HttpAPIMixin(Base) {
       let url = this.config.prefix + route + (method == "GET" ? "/" + this.id : "");
       console.log("_sendRequest to url", url);
       headers = Object.assign({
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
       }, headers);
 
@@ -96,7 +97,23 @@ function HttpAPIMixin(Base) {
         body: JSON.stringify(body),
       });
       return responsePromise
-        .then(resp => resp.json())
+        .then(resp => {
+          let statusText = resp.statusText;
+          if (resp.ok || resp.status < 400) {
+            return resp.json();
+          } else if (resp.headers.get('Content-Type').includes("json")) {
+            console.log("request got through but was denied");
+            // request got through but was denied
+            return resp.json().then(data => {
+              if (!data.error) {
+                data.error = statusText;
+              }
+              return data;
+            });
+          } else {
+            console.log("error response:", resp);
+          }
+        })
         .then(data => {
           console.log(route + " response: ", data);
           return data;
@@ -161,17 +178,20 @@ class SpectrumClient {
 
   wrapMethod(methodName) {
     return function() {
+      let topic = "client" + methodName.charAt(0).toUpperCase() + methodName.substring(1);
       this[methodName]().then(resp => {
-        let topic = "client" + methodName.charAt(0).toUpperCase() + methodName.substring(1);
-        let errorTopic = topic + "Error";
+        if (resp.error) {
+          topic += "Error";
+        }
         console.log(methodName + " resp", topic, resp);
         document.dispatchEvent(new CustomEvent(topic, {
           bubbles: true,
           detail: resp,
         }));
       }).catch(ex => {
-        console.log(methodName + " ex", errorTopic, resp);
-        document.dispatchEvent(new CustomEvent(errorTopic, {
+        topic += "Error";
+        console.log(methodName + " ex", topic, ex);
+        document.dispatchEvent(new CustomEvent(topic, {
           bubbles: true,
           detail: ex,
         }));

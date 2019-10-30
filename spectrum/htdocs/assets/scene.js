@@ -226,7 +226,11 @@ class WelcomeScene extends Scene {
 
     client.joinQueue().then(resp => {
       console.log("Got join response: ", resp);
-      game.switchScene("colorpicker");
+      if (resp.error) {
+        console.warn("joinQueue refused: ", resp);
+      } else {
+        game.switchScene("colorpicker");
+      }
     }).catch(ex => {
       console.warn("joinQueue failed: ", ex);
     });
