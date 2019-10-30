@@ -77,7 +77,8 @@ function FakeAPIMixin(Base) {
 function HttpAPIMixin(Base) {
   class HttpAPIClient extends Base {
     _sendRequest(route, method = "GET", headers = {}, body) {
-      let url = this.config.prefix + route + (method == "GET" ? "/" + this.id : "");
+      let url = this.config.prefix + route;
+
       console.log("_sendRequest to url", url);
       headers = Object.assign({
         'Accept': 'application/json',
@@ -156,7 +157,7 @@ function HttpAPIMixin(Base) {
 class SpectrumClient {
   constructor(config) {
     this.config = Object.assign({}, {
-      heartbeatInterval: 2000,
+      heartbeatInterval: 8000,
     }, config);
     this.id = uuidv4();
     this.pollTimer = null;

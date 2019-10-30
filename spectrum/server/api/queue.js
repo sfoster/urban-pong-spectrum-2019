@@ -15,10 +15,10 @@ module.exports = {
     res.json({ count: 0 });
   },
   getPosition(req, res) {
-    let clientId = req.params.clientId;
+    let clientId = req.sessionID;
     if (!clientId) {
-      res.status(500).json({
-        error: `Missing required "id" param`,
+      res.status(404).json({
+        error: `Unknown client`,
       });
       return;
     }
@@ -28,13 +28,13 @@ module.exports = {
   addClient(req, res) {
     let clientId = req.sessionID;
     if (!clientId) {
-      res.status(500).json({
-        error: `Missing required "clientId" param`,
+      res.status(404).json({
+        error: `Unknown client`,
       });
       return;
     }
     if (store.clients.has(clientId)) {
-      res.status(500).json({
+      res.status(404).json({
         error: `Client ${clientId} already registered`,
       });
       return;
@@ -51,7 +51,7 @@ module.exports = {
   removeClient(req, res) {
     let clientId = req.sessionID;
     if (!clientId) {
-      res.status(500).json({
+      res.status(404).json({
         error: `Unknown client`,
       });
       return;
