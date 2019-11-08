@@ -105,6 +105,4 @@ app.post("/queue/leave", isAuthenticated, api.queue.removeClient);
 //   Request includes an array of rgb colors,
 app.post("/queue/colors", isAuthenticated, api.colors.sendColors);
 
-app.listen(config.HTTP_PORT, function () {
-  console.log('Status app listening on port ' + config.HTTP_PORT + '!');
-});
+module.exports = app;
