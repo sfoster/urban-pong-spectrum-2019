@@ -34,10 +34,7 @@ module.exports = {
       return;
     }
     if (store.clients.has(clientId)) {
-      res.status(404).json({
-        error: `Client ${clientId} already registered`,
-      });
-      return;
+      // client already registered, coming back for more
     }
     let clientData = {};
     store.clients.set(clientId, clientData);

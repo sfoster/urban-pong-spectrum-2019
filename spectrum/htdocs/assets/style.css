@@ -110,31 +110,32 @@ section.body > .body-lower {
   flex: 0 1 auto;
 }
 
-#welcome {
+.scene-panel {
 }
-#welcome > section.body {
+.scene-panel > section.body {
   text-align: center;
   display: flex;
   flex-direction: column;
 }
 
-#welcome > section.body > .body-upper {
+.scene-panel > section.body > .body-upper {
   font-size: 1.4em;
   line-height: 1.7em;
 }
-#welcome > section.body > .body-lower {
+.scene-panel > section.body > .body-lower {
   display: flex;
   flex-direction: column;
 }
-#welcome > section.body .hidden {
+.scene-panel > section.body .hidden {
   display: none;
+}
+
+.scene-panel > section.body button {
+  font-size: 2em;
 }
 
 #welcome > section.body button {
   font-size: 4em;
-}
-
-#waitingforopponent {
 }
 
 #colorpicker:not(.hidden).scene-panel {

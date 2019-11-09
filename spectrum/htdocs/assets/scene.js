@@ -48,8 +48,9 @@ class Scene {
 class ColorPickerScene extends Scene {
   constructor(elem, options) {
     super(elem, options);
+    this.sendButton = this.elem.querySelector("button");
     this.colorCount = options.colorCount;
-    this.pickedColors = new Array(options.colorCount);
+    this.pickedColors = null;
     this.strings = {
       colorsNeededButtonText: "Pick some colors next",
       colorNeededButtonText: "One more color",
@@ -65,17 +66,19 @@ class ColorPickerScene extends Scene {
   enter() {
     super.enter();
     console.log("Enter ColorPickerScene");
+    this.pickedColors = new Array(this.options.colorCount);
     this.elem.classList.remove("disabled");
 
     // initialize the tiles
     let containerNode = this.pickerContainer = this.elem.querySelector(".body > .body-upper");
     let dims = containerNode.getBoundingClientRect();
-    this.colorPicker = new ColorPicker(null, {
-      containerNode,
-      incrementDegrees: 3,
-      radius: dims.width / 2,
-    });
-    this.sendButton = this.elem.querySelector("button");
+    if (!this.colorPicker) {
+      this.colorPicker = new ColorPicker(null, {
+        containerNode,
+        incrementDegrees: 3,
+        radius: dims.width / 2,
+      });
+    }
     this.elem.addEventListener("colorpickershow", this);
     this.elem.addEventListener("colorpickerhide", this);
 
@@ -85,9 +88,7 @@ class ColorPickerScene extends Scene {
     this.elem.addEventListener("colorpicked", this);
 
     for(let tileIndex = 0; tileIndex < this.options.colorCount; tileIndex++) {
-      if (this.pickedColors[tileIndex]) {
-        this.applyColorToTileAtIndex(tileIndex, this.pickedColors[tileIndex]);
-      }
+      this.applyColorToTileAtIndex(tileIndex, this.pickedColors[tileIndex]);
     }
     this.updateAndRender();
     // start the heartbeat requests
@@ -99,9 +100,12 @@ class ColorPickerScene extends Scene {
   }
   exit() {
     this.colorSent = null;
+    this.pickedColors = null;
     super.exit();
     this.elem.removeEventListener("click", this);
     this.elem.removeEventListener("colorpicked", this);
+    this.elem.removeEventListener("colorpickershow", this);
+    this.elem.removeEventListener("colorpickerhide", this);
   }
   updateAndRender() {
     let unpickedCount = this.colorsRemaining;
@@ -179,14 +183,16 @@ class ColorPickerScene extends Scene {
     this.updateAndRender();
   }
   applyColorToTileAtIndex(tileIndex, rgbColor="") {
-    let cssColor = `rgb(${rgbColor[0]}, ${rgbColor[1]}, ${rgbColor[2]})`;
+    let cssColor = rgbColor && `rgb(${rgbColor[0]}, ${rgbColor[1]}, ${rgbColor[2]})`;
     let tile = this.elem.querySelectorAll(".tile")[tileIndex];
-    console.log("apply color: ", tile, tileIndex, rgbColor);
-    tile.style.backgroundColor = cssColor;
-    tile.classList.remove("needscolor");
-
-    this.pickedColors[tileIndex] = rgbColor;
-
+    if (cssColor) {
+      tile.style.backgroundColor = cssColor;
+      tile.classList.remove("needscolor");
+      this.pickedColors[tileIndex] = rgbColor;
+    } else {
+      tile.style.backgroundColor = "";
+      tile.classList.add("needscolor");
+    }
     let colorIndex;
     let colorsComplete = true;
     for (colorIndex=0; colorIndex<this.options.colorCount; colorIndex++) {
@@ -228,9 +234,9 @@ class WelcomeScene extends Scene {
     if ("geolocation" in navigator) {
       /* geolocation is available */
       const geoOptions = {
-        enableHighAccuracy: true,
+        // enableHighAccuracy: true,
         maximumAge        : 30000,
-        timeout           : 27000
+        // timeout           : 27000
       };
 
       this.elem.querySelector(".nolocation").classList.add("hidden");
@@ -254,9 +260,10 @@ class WelcomeScene extends Scene {
         });
       }
 
-      navigator.geolocation.getCurrentPosition(gotLocation, function(err) {
+      function locationError(err) {
         game.showMessage(err.message);
-      }, geoOptions);
+      }
+      navigator.geolocation.getCurrentPosition(gotLocation, locationError, geoOptions);
       // TODO: add watch so we can send the current value in all requests during gameplay
       // locationWatchID = navigator.geolocation.watchPosition(handleLocation, handleLocationError, geoOptions);
     } else {
