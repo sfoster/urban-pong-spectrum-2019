@@ -8,6 +8,7 @@ const haversine = require('./haversine');
 const api = {
   queue: require('./api/queue'),
   colors: require('./api/colors'),
+  status: require('./api/status'),
 };
 const session = require('express-session');
 const maxClientTimeoutMS = 60000;
@@ -73,6 +74,10 @@ app.get("/queue", api.queue.getSummary);
 //   error unless auth cookie is valid
 //   response is JSON like { position: n,  timestamp: "" }
 app.get("/queue/position", isAuthenticated, api.queue.getPosition);
+
+// request for high-level service status
+//   response is JSON like { clients: n,  timestamp: "" }
+app.get("/queue/status", api.status.getStatus);
 
 // request to join queue.
 //   Request includes geolocation,

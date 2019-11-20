@@ -1,12 +1,20 @@
 const store = require('../datastore');
-const queue = [];
+
+function getQueue() {
+  let clientsList = Array.from(store.clients.values());
+  clientsList.sort((a, b) => {
+    return a.joinedTime > b.joinedTime;
+  });
+  return clientsList;
+}
 
 function queueSummary(clientId) {
+  let queue = getQueue();
   let summary = {
     count: queue.length,
   };
   if (clientId) {
-    summary.position = queue.indexOf(clientId);
+    summary.position = queue.findIndex(c => c.id == clientId);
   }
   return summary;
 }
@@ -22,7 +30,8 @@ module.exports = {
       });
       return;
     }
-    let position = queue.indexOf(clientId)
+    let queue = getQueue();
+    let position = queue.findIndex(c => c.id == clientId);
     res.json({ position });
   },
   addClient(req, res) {
@@ -33,12 +42,20 @@ module.exports = {
       });
       return;
     }
+    let now = Date.now();
+    let clientData;
     if (store.clients.has(clientId)) {
       // client already registered, coming back for more
+      clientData = store.clients.get(clientId);
+    } else {
+      clientData = {
+        id: clientId,
+      };
     }
-    let clientData = {};
+    clientData.lastPing = now;
+    clientData.joinedTime = Date.now();
+
     store.clients.set(clientId, clientData);
-    queue.push(clientId);
 
     let result = queueSummary(clientId);
     res.json(Object.assign(result, {
@@ -52,10 +69,6 @@ module.exports = {
         error: `Unknown client`,
       });
       return;
-    }
-    let idx = queue.indexOf(clientId);
-    if (idx >= 0) {
-      queue.splice(idx, 1);
     }
     store.clients.delete(clientId);
     res.json({ status: "ok" });

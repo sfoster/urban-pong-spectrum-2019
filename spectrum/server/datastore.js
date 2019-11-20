@@ -1,14 +1,18 @@
 const queue = new Map();
 const clients = new Map();
-const status = {
-  get() {
-    return "ok";
-  }
-};
+const lightController = new Map();
+var _status = "ok";
+
 const store = {
   queue,
   clients,
-  status,
+  get status(){
+    return _status;
+  },
+  set status(value) {
+    _status = value;
+  },
+  lightController,
 };
 
 module.exports = store;
