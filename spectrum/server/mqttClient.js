@@ -24,7 +24,7 @@ class MqttClient extends EventEmitter {
     }
 
     let mqttUrl = Url.parse(config.MQTT_BROKER_URL);
-    mqttUrl.auth = `spectrum:${config.MQTT_BROKER_SPECTRUM_PASSWORD}`;
+    mqttUrl.auth = `spectrum-app:${config.MQTT_BROKER_SPECTRUM_PASSWORD}`;
 
     let connectUrl = Url.format(mqttUrl);
     this._client = Mqtt.connect(connectUrl);
