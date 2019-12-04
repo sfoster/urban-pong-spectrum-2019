@@ -146,7 +146,7 @@
     container.querySelector("pre").textContent = JSON.stringify({
       latitude: coords.latitude,
       longitude: coords.longitude,
-      distance: haversine(coords, targetCoord),
+      distance: haversine(coords, targetCoord, { unit: "meter" }),
     }, null, 2);
     toggleLocated(true);
   }
