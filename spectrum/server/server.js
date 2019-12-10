@@ -37,4 +37,3 @@ mqttClient.on("pi/status", message => {
   store.lightController.set("lastSeen", Date.now());
   store.lightController.set("online", true);
 });
-

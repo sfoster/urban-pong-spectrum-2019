@@ -23,7 +23,7 @@ class Scene {
     this._topics.delete(name);
     document.removeEventListener(name, this);
   }
-  enter() {
+  enter(params = {}) {
     this._active = true;
     this.elem.addEventListener("click", this);
     this.elem.classList.remove("hidden");
@@ -63,8 +63,8 @@ class ColorPickerScene extends Scene {
     }, this.colorCount);
   }
 
-  enter() {
-    super.enter();
+  enter(params = {}) {
+    super.enter(params);
     console.log("Enter ColorPickerScene");
     this.pickedColors = new Array(this.options.colorCount);
     this.elem.classList.remove("disabled");
@@ -222,8 +222,8 @@ class ColorPickerScene extends Scene {
 }
 
 class WelcomeScene extends Scene {
-  enter() {
-    super.enter();
+  enter(params = {}) {
+    super.enter(params);
     console.log("Enter WelcomeScene");
   }
   play() {
@@ -231,53 +231,63 @@ class WelcomeScene extends Scene {
     let client = this.client;
     let playButton = this.elem.querySelector("button");
 
-    if ("geolocation" in navigator) {
-      /* geolocation is available */
-      const geoOptions = {
-        // enableHighAccuracy: true,
-        maximumAge        : 30000,
-        // timeout           : 27000
-      };
-
-      this.elem.querySelector(".nolocation").classList.add("hidden");
-      this.elem.querySelector(".greeting").classList.remove("hidden");
-
-      function gotLocation(position) {
-        client.joinQueue({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        }).then(resp => {
-          console.log("Got join response: ", resp);
-          if (resp.error) {
-            console.warn("joinQueue refused: ", resp);
-            game.showMessage(resp.message);
-          } else {
-            game.switchScene("colorpicker");
-          }
-        }).catch(ex => {
-          console.warn("joinQueue failed: ", ex);
-          game.showMessage(ex.message);
-        });
-      }
-
-      function locationError(err) {
-        game.showMessage(err.message);
-      }
-      navigator.geolocation.getCurrentPosition(gotLocation, locationError, geoOptions);
-      // TODO: add watch so we can send the current value in all requests during gameplay
-      // locationWatchID = navigator.geolocation.watchPosition(handleLocation, handleLocationError, geoOptions);
-    } else {
+    if (!("geolocation" in navigator)) {
       /* geolocation IS NOT available */
       playButton.disabled = true;
       this.elem.querySelector(".nolocation").classList.remove("hidden");
       this.elem.querySelector(".greeting").classList.add("hidden");
+      return;
     }
+
+    /* geolocation is available */
+    const geoOptions = {
+      // enableHighAccuracy: true,
+      maximumAge        : 30000,
+      // timeout           : 27000
+    };
+
+    this.elem.querySelector(".nolocation").classList.add("hidden");
+    this.elem.querySelector(".greeting").classList.remove("hidden");
+
+    function gotLocation(position) {
+      client.joinQueue({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      }).then(resp => {
+        console.log("Got join response: ", resp);
+        if (resp.error) {
+          console.warn("joinQueue refused: ", resp);
+          let errorCode = "error-"+resp.message;
+          let params = Object.assign({
+            errorCode
+          }, game.strings.getContent(errorCode));
+          game.switchScene("notavailable", params);
+        } else {
+          game.switchScene("colorpicker");
+        }
+      }).catch(ex => {
+        console.warn("joinQueue failed: ", ex);
+        game.switchScene("notavailable", { heading: "Join Error", message: ex.message, });
+      });
+    }
+
+    function locationError(err) {
+      game.switchScene("notavailable", { heading: "Location Error", message: err.message, });
+    }
+
+    navigator.geolocation.getCurrentPosition(gotLocation, locationError, geoOptions);
+    // TODO: add watch so we can send the current value in all requests during gameplay
+    // locationWatchID = navigator.geolocation.watchPosition(handleLocation, handleLocationError, geoOptions);
+  }
+  showLocationError() {
+    let explanation = 
+    game.switchScene("notavailable", { heading: "Join Error", message: resp.message, });
   }
 }
 
 class GameOverScene extends Scene {
-  enter() {
-    super.enter();
+  enter(params = {}) {
+    super.enter(params);
     console.log("Enter GameOverScene");
 
     this.client.toggleHeartbeat(false);
@@ -300,7 +310,6 @@ class GameOverScene extends Scene {
       return parser.parseFromString(content.toString(), "image/svg+xml");
     });
   }
-
   renderResult(colorsValues) {
     let cssColorValues = colorsValues.map(rgbArray => `rgb(${rgbArray[0]}, ${rgbArray[1]}, ${rgbArray[2]})`);
     console.log("got cssColorValues: ", cssColorValues);
@@ -322,6 +331,44 @@ class GameOverScene extends Scene {
 
     replaceColorsInDocument(this.svgImageDocument, cssColorValues, ".cls-1");
     renderImageOutput(this.svgImageDocument, this.targetImage);
+  }
+}
 
+class NotAvailableScene extends Scene {
+  constructor(elem, options) {
+    super(elem, options);
+    this.heading = this.elem.querySelector(".heading");
+    this.message = this.elem.querySelector(".message");
+  }
+  enter(params = {}) {
+    super.enter(params);
+    console.log("Enter NotAvailableScene");
+
+    this.client.toggleHeartbeat(false);
+    this.client.leaveQueue();
+
+    if (params.titleText) {
+      this.heading.textContent = params.titleText;
+    } else {
+      this.heading.textContent = params.heading || "";
+    }
+    if (params.contentFragment) {
+      this.message.textContent = "";
+      this.message.appendChild(params.contentFragment);
+    } else {
+      this.message.textContent = params.message || "";
+    }
+    if (params.className) {
+      if (this.message.firstElementChild.hasAttribute("class")) {
+        let node = this.elem.querySelector(".body-upper"); 
+        for (let cls of params.className.split(" ")) {
+          node.classList.add(cls); 
+        }
+      }
+    }
+  }
+  exit() {
+    super.exit();
+    this.elem.querySelector(".body-upper").className = "body-upper"; 
   }
 }

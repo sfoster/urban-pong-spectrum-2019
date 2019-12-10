@@ -10,7 +10,7 @@ class Game {
   registerScene(name, scene) {
     this.scenes[name] = scene;
   }
-  switchScene(name) {
+  switchScene(name, sceneParams = {}) {
     if (this.previousScene) {
       this.previousScene.elem.classList.remove("previous");
       this.previousScene = null;
@@ -26,10 +26,10 @@ class Game {
       this.previousScene.elem.classList.add("previous");
     }
     this.currentScene = this.scenes[name];
-    this.currentScene.enter();
+    this.currentScene.enter(sceneParams);
   }
-  showMessage(message) {
-    let elem = this.elem.querySelector("#message");
+  showNotification(message) {
+    let elem = this.elem.querySelector("#notification");
     elem.querySelector(".message-body").textContent = message;
     elem.classList.remove("hidden");
     if (!this.messageElem) {

@@ -256,3 +256,9 @@ section.body > .body-lower {
 .offscreen {
   transform: translateX(-100vw);
 }
+
+#notavailable .body-upper.map {
+  background: url("./map.png") no-repeat bottom;
+  background-size: contain;
+  margin-bottom: 2em;
+}

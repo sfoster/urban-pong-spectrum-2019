@@ -28,7 +28,7 @@ function isAuthenticated(req, res, next) {
   } else {
     message = "timed-out";
   }
-  denyRequest({ status: 401, message });
+  denyRequest({ status: 401, message }, req, res);
 }
 
 function denyRequest(reason, req, res) {

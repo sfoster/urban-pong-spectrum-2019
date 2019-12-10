@@ -7,6 +7,11 @@ window.onload = function() {
   const sceneArgs = {
     game, client
   };
+
+  let tmplNode = document.querySelector("#content-strings");
+  const strings = game.strings = new GameStrings(tmplNode);
+  strings.init();
+
   game.registerScene(
     "welcome",
     new WelcomeScene(document.getElementById("welcome"),
@@ -29,6 +34,13 @@ window.onload = function() {
     new GameOverScene(document.getElementById("gameover"),
               Object.assign({}, sceneArgs, { id: "gameover" }))
   );
+
+  game.registerScene(
+    "notavailable",
+    new NotAvailableScene(document.getElementById("notavailable"),
+              Object.assign({}, sceneArgs, { id: "notavailable" }))
+  );
+
   // start at the welcome screen
   game.switchScene("welcome");
 };

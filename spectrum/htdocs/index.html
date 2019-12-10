@@ -14,7 +14,7 @@
 
 <body>
 <div id="game-container">
-  <div id="message" class="hidden"><section class="message-body"></section></div>
+  <div id="notification" class="hidden"><section class="message-body"></section></div>
   <div id="welcome" class="scene-panel hidden">
     <header>
       <img src="assets/color-launch-logo.svg">
@@ -59,12 +59,31 @@
     <footer>
     </footer>
   </div>
-</div>
-
+  <div id="notavailable" class="scene-panel hidden">
+    <header>
+      <img src="assets/color-launch-logo.svg">
+    </header>
+    <section class="body">
+      <div class="body-upper">
+        <h2 class="heading">This game is unavailable for reasons.</h2>
+        <p class="message"></p>
+      </div>
+      <div class="body-lower"><button onclick="game.switchScene('welcome')">Try Again</button></div>
+    </section>
+    <footer>
+    </footer>
+  </div>
+</div> 
+<template id="content-strings">
+  <section id="error-not-nearby" title="Oh Noes" class="map">
+    <p>You need to be in the Eugene, OR area to play</p>
+  </section>
+</template> 
 <script async src="assets/client.js"></script>
 <script async src="assets/scene.js"></script>
 <script async src="assets/colorpicker.js"></script>
 <script async src="assets/game.js"></script>
+<script async src="assets/strings.js"></script>
 <script async src="config.js"></script>
 <script async src="assets/bootstrap.js"></script>
 
