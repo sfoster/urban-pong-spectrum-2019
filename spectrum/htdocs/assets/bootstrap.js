@@ -41,6 +41,11 @@ window.onload = function() {
               Object.assign({}, sceneArgs, { id: "notavailable" }))
   );
 
+  game.registerScene(
+    "startup",
+    new InitializeScene(document.getElementById("initializing"),
+              Object.assign({}, sceneArgs, { id: "startup" }))
+  );
   // start at the welcome screen
-  game.switchScene("welcome");
+  game.switchScene("startup");
 };

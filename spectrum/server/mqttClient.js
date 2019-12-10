@@ -11,6 +11,9 @@ class MqttClient extends EventEmitter {
     this._client = null;
     this._connected = false;
   }
+  get connected() {
+    return this._connected;
+  }
   connect() {
     if (this._connected) {
       return Promise.resolve();
@@ -65,6 +68,7 @@ class MqttClient extends EventEmitter {
         if (this._resolveConnected) {
           this._resolveConnected();
           delete this._resolveConnected;
+          this.emit("statuschange", this.connected);
         }
         break;
       case "offline":
@@ -74,9 +78,11 @@ class MqttClient extends EventEmitter {
           this._rejectConnected();
           delete this._resolveConnected;
         }
+        this.emit("statuschange", this.connected);
         break;
       case "close":
         this._connected = false;
+        this.emit("statuschange", this.connected);
         break;
       case "end":
         break;

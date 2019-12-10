@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  html {
+    --container-width: 57vh;
+    --container-height: 100vh;
+  }
+
+  @media (orientation: portrait) and (max-aspect-ratio: 4/7) {
+    html {
+      --container-width: 100vw;
+      --container-height: 175vw;
+    }
+  }
+
+  html, body {
+    margin: 0; padding: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    font-size: calc(var(--container-width) / 32);
+  }
+  body {
+    background-color: #ccc;
+  }
+
+  #game-container {
+    position: relative;
+    width: var(--container-width);
+    height: calc(var(--container-height) - 30px);
+    background-color: #fff;
+    user-select: none;
+    margin: 30px auto 0 auto;
+  }
+  canvas {
+    outline: 1px solid #dedede;
+  }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas></canvas>
+</div>
+
+<script type="text/javascript">
+"use strict";
+/*eslint quotes: [2, "double"]*/
+
+const TAU = Math.PI + Math.PI;
+
+function radians2degrees(angle) {
+  return angle * 180/Math.PI;
+}
+
+function degrees2radians(angle) {
+  return angle * Math.PI/180;
+}
+
+function plotPoint(ctx, pt, color="#ffffff") {
+  ctx.strokeStyle = color;
+  ctx.beginPath();
+  ctx.arc(pt.x, pt.y, 2, 0, 2*Math.PI, false);
+  ctx.stroke();
+  return pt;
+}
+
+function getAngleFromPt(pt) {
+  // pt is offsets from the center of the circle
+  // Note: atan2 takes y, x NOT x, y
+  let horizontalAngle = Math.atan2(pt.y, pt.x) % TAU;
+  let verticalAngle = Math.atan2(pt.x, pt.y) % TAU;
+  let angle = horizontalAngle;
+  if (angle < 0) {
+    angle = TAU + angle;
+  }
+  return angle;
+}
+
+function getPtFromAngle(angle, radius, origin) {
+  let x = Math.cos(angle) * radius;
+  let y = Math.sin(angle) * radius;
+  return {
+    x: origin ? x + origin.x : x,
+    y: origin ? y + origin.y : y,
+  };
+}
+
+function str(pt) {
+  return `x:${pt.x.toFixed(2)}, y:${pt.y.toFixed(2)}`;
+}
+
+function drawColorSlices(startDegrees, endDegrees, incrementDegrees, ctx, startPt, endPt) {
+  let incr = degrees2radians(incrementDegrees);
+  let count = (endDegrees - startDegrees) / incrementDegrees;
+  let angle  = degrees2radians(startDegrees);
+  let xIncrement = (endPt.x - startPt.x) / count;
+  let x = 0;
+  console.log(`count: ${count}`, startPt, endPt);
+
+  for (let i=0; i<count; i++) {
+    let color = getCssColorFromHue(radians2degrees(angle));
+    ctx.fillStyle = color;
+    ctx.fillRect(x, startPt.y, x + xIncrement, endPt.y - startPt.y);
+    x += xIncrement;
+    angle += incr;
+  }
+}
+
+function getCssColorFromHue(hue, sat=1, lum=0.5) {
+  return `hsl(${hue.toFixed(2)}, ${sat * 100}%, ${lum*100}%)`;
+}
+
+window.onload = function() {
+  let canvas = document.querySelector("canvas");
+  let dims = canvas.parentNode.getBoundingClientRect();
+  canvas.width = dims.width;
+  canvas.height = dims.width;
+  let ctx = canvas.getContext("2d");
+  let radius = dims.width/2 - 20;
+  let origin = { x: radius+10, y: radius+10 };
+  ctx.arc(origin.x, origin.y, radius, 0, TAU);
+  ctx.stroke();
+  let incrementDegrees = 1.5;
+  let progression = drawColorSlices(0, 360, 15, ctx, { x: 0, y: origin.y }, { x: dims.width, y: origin.y + 60 });
+}
+</script>
+</body>
+</html>

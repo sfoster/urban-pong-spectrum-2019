@@ -1,6 +1,7 @@
 const queue = new Map();
 const clients = new Map();
 const lightController = new Map();
+const mqttBroker = new Map();
 var _status = "ok";
 
 const store = {
@@ -13,6 +14,7 @@ const store = {
     _status = value;
   },
   lightController,
+  mqttBroker,
 };
 
 module.exports = store;

@@ -52,6 +52,7 @@ function getDistance(coords) {
 
 const app = express();
 const config = require("./config");
+app.set("controllerRequired", config.controllerRequired);
 
 app.use(session({secret: "Shh, its a secret!"}));
 

@@ -70,6 +70,9 @@ function FakeAPIMixin(Base) {
       }
       return Promise.resolve(resp);
     }
+    status() {
+       return Promise.resolve({ status: "ok" }); 
+    }
   }
   return FakeAPIClient;
 }
@@ -150,6 +153,9 @@ function HttpAPIMixin(Base) {
     heartbeat() {
       return this.getPosition();
     }
+    status() {
+      return this._sendRequest("/status");
+    }
   }
   return HttpAPIClient;
 }
@@ -170,7 +176,8 @@ class SpectrumClient {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
-    if (!wasPolling || force) {
+    let startPolling = force !== undefined ? force : !wasPolling;
+    if (startPolling) {
       this._wrappedHeartbeat = this.wrapMethod("heartbeat");
       console.log("heartbeatInterval: ", this.config.heartbeatInterval);
       this._wrappedHeartbeat();

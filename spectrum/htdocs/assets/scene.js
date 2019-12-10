@@ -221,6 +221,33 @@ class ColorPickerScene extends Scene {
   }
 }
 
+class InitializeScene extends Scene {
+  enter(params = {}) {
+    super.enter(params);
+    console.log("Enter InitializeScene");
+    this.client.status().then(result => {
+      if (result.ok) {
+        this.statusOk(result);
+      } else {
+        this.statusNotOk(result);
+      }
+    }).catch(ex =>{
+      this.statusNotOk(ex);
+    })
+  }
+  statusOk(statusData) {
+    this.game.switchScene("welcome", statusData);  
+  }
+  statusNotOk(statusResult){
+    if (statusResult && statusResult instanceof Error) {
+      game.switchScene("notavailable", { heading: "Status Error", message: statusResult.message, });
+    } else if (statusResult && !statusResult.ok) {
+      // TODO: we do have more fine-grained status data available for a more accurate message?
+      game.switchScene("notavailable", { heading: "Offline", message: "ColorLaunch is Offline right now, please come back later", });
+    }
+  }
+}
+
 class WelcomeScene extends Scene {
   enter(params = {}) {
     super.enter(params);
@@ -263,6 +290,7 @@ class WelcomeScene extends Scene {
           }, game.strings.getContent(errorCode));
           game.switchScene("notavailable", params);
         } else {
+          game.joined = true;
           game.switchScene("colorpicker");
         }
       }).catch(ex => {
@@ -291,7 +319,10 @@ class GameOverScene extends Scene {
     console.log("Enter GameOverScene");
 
     this.client.toggleHeartbeat(false);
-    this.client.leaveQueue();
+    if (this.game.joined) {
+      this.client.leaveQueue();
+      this.game.joined = false;
+    }
 
     this.targetImage = this.elem.querySelector(".outputImage");
     this.loadInputImage("./assets/circles.svg").then(svgDocument => {
@@ -345,7 +376,10 @@ class NotAvailableScene extends Scene {
     console.log("Enter NotAvailableScene");
 
     this.client.toggleHeartbeat(false);
-    this.client.leaveQueue();
+    if (this.game.joined) {
+      this.client.leaveQueue();
+      this.game.joined = false;
+    }
 
     if (params.titleText) {
       this.heading.textContent = params.titleText;

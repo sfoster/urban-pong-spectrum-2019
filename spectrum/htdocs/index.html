@@ -36,7 +36,7 @@
         <img class="outputImage" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0ODAiIGhlaWdodD0iNDgwIj4KCjwvc3ZnPg==" width=480 height=480 style="outline: 1px dotted #999">
       </div>
       <div class="body-lower">
-        <p><button onclick="game.switchScene('welcome')">Play Again</button></p></div>
+        <p><button onclick="game.switchScene('startup')">Play Again</button></p></div>
     </section>
     <footer>
     </footer>
@@ -68,7 +68,17 @@
         <h2 class="heading">This game is unavailable for reasons.</h2>
         <p class="message"></p>
       </div>
-      <div class="body-lower"><button onclick="game.switchScene('welcome')">Try Again</button></div>
+      <div class="body-lower"><button onclick="game.switchScene('startup')">Try Again</button></div>
+    </section>
+    <footer>
+    </footer>
+  </div>
+  <div id="initializing" class="scene-panel hidden">
+    <header>
+      <img src="assets/color-launch-logo.svg">
+    </header>
+    <section class="body">
+      <h2>Connecting...</h2>
     </section>
     <footer>
     </footer>

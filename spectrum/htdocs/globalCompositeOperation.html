@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>globalCompositeOperation</title>
+  <style type="text/css">
+    body {
+      display: flex;
+      background-color: green;
+   }
+   canvas {
+    outline: 1px dotted blue;
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 1;
+   }
+  </style>
+</head>
+<body>
+<div style="position: relative;">
+  <canvas id="underlay" width="1024" height="64" style="top: 120px; "></canvas>
+  <canvas id="overlay" width="1024" height="64" style="top: 120px; "></canvas>
+</div>
+
+<script>
+let ledCount = 64;
+let ledSize = 8;
+
+function drawOverlay() {
+  let canvasNode = document.querySelector("canvas#overlay");
+  let ctx = canvasNode.getContext("2d");
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, canvasNode.width, canvasNode.height);
+
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.fillStyle = "#ff0000";
+  let slotWidth = canvasNode.width/ledCount;
+  let margin = (slotWidth - ledSize) / 2;
+  let x = 0, y=canvasNode.height/2 - ledSize/2;
+  for (let i=0; i<ledCount; i++) {
+    ctx.beginPath();
+    ctx.arc(x + slotWidth/2, y, ledSize/2, 0, 2 * Math.PI, false);
+    ctx.fill();
+    x += slotWidth;
+  }
+  ctx.globalCompositeOperation = "source-over";
+}
+
+function drawBackground(colorValues) {
+  let colors = []
+  let canvasNode = document.querySelector("canvas#underlay");
+  let ctx = canvasNode.getContext("2d");
+  console.log("draw colors %s", colorValues.length);
+
+  let slotWidth = canvasNode.width/ledCount;
+  let x = 0, y=0, color;
+  for (let i=0; i<colorValues.length; i++) {
+    color = colorValues[i];
+    ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 100%)`;
+    ctx.fillRect(x, y, x+slotWidth, canvasNode.height);
+    x += slotWidth;
+  }
+}
+
+const BLACK = { r: 0, g: 0, b: 0 };
+const RED = { r: 255, g: 0, b: 0 };
+let colorValues = [];
+for (let i=0; i<ledCount; i++) {
+  colorValues[i] = BLACK;
+}
+let colorPosition = 0;
+let direction = 1;
+
+drawOverlay();
+
+setInterval(() => {
+  colorValues[colorPosition] = BLACK;
+  colorPosition = colorPosition + direction * 1;
+  if (colorPosition >= ledCount-1 || colorPosition < 0) {
+    direction *= -1;
+    colorPosition = colorPosition + direction * 1;
+  }
+  colorValues[colorPosition] = RED;
+  drawBackground(colorValues);
+}, 1000/60);
+</script>
+</body>
+</html>

@@ -31,9 +31,13 @@ httpServer.listen(config.HTTP_PORT, function() {
   console.log('Status app listening on port ' + config.HTTP_PORT + '!');
 });
 
-mqttClient.subscribe("pi/status");
-mqttClient.on("pi/status", message => {
+mqttClient.subscribe(`${config.LIGHT_CONTROLLER_ID}/status`);
+mqttClient.on(`${config.LIGHT_CONTROLLER_ID}/status`, message => {
   console.log("Got message: ", message);
+  store.lightController.set("name", `${config.LIGHT_CONTROLLER_ID}`);
   store.lightController.set("lastSeen", Date.now());
   store.lightController.set("online", true);
+});
+mqttClient.on(`statuschange`, connected => {
+    store.mqttBroker.set("connected", connected);
 });
