@@ -1,3 +1,23 @@
+class WeightedItems extends Array {
+  // each item has a weight property, which is some ratio to 1
+
+  get totalWeight() {
+    return this.filter(item => !isNaN(item.weight))
+               .reduce((total, item) => total + item.weight, 0);
+  }
+
+  pick(pcent) {
+    let totalWeight = this.totalWeight;
+    let pickWeight = pcent * totalWeight;
+    let currWeight = 0;
+    let pickedItem = this.find(item => {
+      currWeight += item.weight;
+      return currWeight >= pickWeight;
+    }); 
+    return pickedItem;
+  }
+}
+
 class Scene {
   constructor(elem, options={}) {
     this.elem = elem;
@@ -325,7 +345,7 @@ class GameOverScene extends Scene {
     }
 
     this.targetImage = this.elem.querySelector(".outputImage");
-    this.loadInputImage("./assets/circles.svg").then(svgDocument => {
+    this.loadInputImage("./assets/palette_1.svg").then(svgDocument => {
       this.svgImageDocument = svgDocument;
       this.renderResult(this.game.resultColors);
     }).catch(ex => {
@@ -350,6 +370,7 @@ class GameOverScene extends Scene {
       Array.from(fillElements).forEach((elem, idx) => {
         let color = colors[idx % colors.length];
         elem.setAttribute("fill", color);
+        console.log("setting fill to", color, elem);
       });
       return doc;
     }
@@ -360,7 +381,7 @@ class GameOverScene extends Scene {
       outputImg.src = dataURI;
     }
 
-    replaceColorsInDocument(this.svgImageDocument, cssColorValues, ".cls-1");
+    replaceColorsInDocument(this.svgImageDocument, cssColorValues, ".palette-filled-shape");
     renderImageOutput(this.svgImageDocument, this.targetImage);
   }
 }
