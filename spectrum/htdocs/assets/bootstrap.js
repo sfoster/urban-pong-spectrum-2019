@@ -29,10 +29,17 @@ window.onload = function() {
     )
   );
 
+  let resultImages = new WeightedItems(...[
+    { src: "assets/palette_1.svg", weight: 1 },
+    { src: "assets/monster.svg", weight: 0.3 },
+  ]);
+
   game.registerScene(
     "gameover",
     new GameOverScene(document.getElementById("gameover"),
-              Object.assign({}, sceneArgs, { id: "gameover" }))
+              Object.assign({}, Object.assign({
+                resultImages
+              }, sceneArgs), { id: "gameover" }))
   );
 
   game.registerScene(
@@ -46,6 +53,7 @@ window.onload = function() {
     new InitializeScene(document.getElementById("initializing"),
               Object.assign({}, sceneArgs, { id: "startup" }))
   );
+
   // start at the welcome screen
   game.switchScene("startup");
 };

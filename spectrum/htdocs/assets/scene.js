@@ -9,6 +9,7 @@ class WeightedItems extends Array {
   pick(pcent) {
     let totalWeight = this.totalWeight;
     let pickWeight = pcent * totalWeight;
+    console.log("WeightedItems#pick", pcent, pickWeight, totalWeight);
     let currWeight = 0;
     let pickedItem = this.find(item => {
       currWeight += item.weight;
@@ -334,6 +335,11 @@ class WelcomeScene extends Scene {
 }
 
 class GameOverScene extends Scene {
+  constructor(elem, options={}) {
+    super(elem, options);
+    this.resultImages = options.resultImages;
+    console.log("GameOverScene ctor got resultImages:", this.resultImages);
+  }
   enter(params = {}) {
     super.enter(params);
     console.log("Enter GameOverScene");
@@ -345,7 +351,8 @@ class GameOverScene extends Scene {
     }
 
     this.targetImage = this.elem.querySelector(".outputImage");
-    this.loadInputImage("./assets/palette_1.svg").then(svgDocument => {
+    let pickedImage = this.resultImages.pick(Math.random());
+    this.loadInputImage(pickedImage.src).then(svgDocument => {
       this.svgImageDocument = svgDocument;
       this.renderResult(this.game.resultColors);
     }).catch(ex => {
