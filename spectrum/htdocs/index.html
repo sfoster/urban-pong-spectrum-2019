@@ -9,79 +9,77 @@
   <link rel="icon" type="image/png" href="favicon.ico" sizes="16x16" />
   <link rel="apple-touch-icon" href="favicon-32x32.png">
   <meta name="msapplication-TileColor" content="#00ff99">
+  <link rel="stylesheet" href="assets/layout.css">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 
 <body>
-<div id="game-container">
+<div id="page-container">
   <div id="notification" class="hidden"><section class="message-body"></section></div>
-  <div id="welcome" class="scene-panel hidden">
-    <header>
-      <img src="assets/color-launch-logo.svg">
-    </header>
-    <section class="body">
-      <div class="body-upper greeting"><p>When you hit <em>play</em>, you'll be asked for your location. Approve the location request to send your coordinates to ColorLaunch. If you are nearby, you'll be launching colors in just a few seconds.</p></div>
-      <div class="body-upper nolocation hidden"><p>It doesnt look like location services are available or enabled. We need your approximate coordinates to play ColorLaunch.</p></div>
-      <div class="body-lower"><button onclick="game.currentScene.play()">Play</button></div>
-    </section>
-    <footer>
-    </footer>
-  </div>
-  <div id="gameover" class="scene-panel hidden">
-    <header>
-      <h2>Game Over</h2>
-    </header>
-    <section class="body">
-      <div class="body-upper">
-        <img class="outputImage" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0ODAiIGhlaWdodD0iNDgwIj4KCjwvc3ZnPg==" width=480 height=480 style="outline: 1px dotted #999">
-      </div>
-      <div class="body-lower">
-        <p><button onclick="game.switchScene('startup')">Play Again</button></p></div>
-    </section>
-    <footer>
-    </footer>
-  </div>
-  <div id="colorpicker" class="scene-panel hidden">
-    <header>
-      <h2>Color Picker</h2>
-    </header>
-    <section class="body">
-      <div class="body-upper">
-        <div class="tilegroup">
-          <div data-index="0" class="tile needscolor userTile"></div>
-          <div data-index="1" class="tile needscolor"></div>
+  <header id="page-header">
+    <img src="assets/color-launch-logo-cropped.svg">
+  </header>
+  <div id="panels">
+    <div id="welcome" class="scene-panel hidden">
+      <section class="body">
+        <div class="body-upper greeting">Please approve the location request to send your coordinates to ColorLaunch. If you are nearby, you'll be launching colors in just a few seconds.</p></div>
+        <div class="body-upper nolocation hidden"><p>It doesnt look like location services are available or enabled. We need your approximate coordinates to play ColorLaunch.</p></div>
+        <div class="body-lower">
+          <button class="primary" onclick="game.currentScene.play()">Let's play...</button>
         </div>
-      </div>
-      <div class="body-lower">
-        <button>Select 2 colors</button>
-      </div>
-    </section>
-    <footer>
-    </footer>
-  </div>
-  <div id="notavailable" class="scene-panel hidden">
-    <header>
-      <img src="assets/color-launch-logo.svg">
-    </header>
-    <section class="body">
-      <div class="body-upper">
-        <h2 class="heading">This game is unavailable for reasons.</h2>
-        <p class="message"></p>
-      </div>
-      <div class="body-lower"><button onclick="game.switchScene('startup')">Try Again</button></div>
-    </section>
-    <footer>
-    </footer>
-  </div>
-  <div id="initializing" class="scene-panel hidden">
-    <header>
-      <img src="assets/color-launch-logo.svg">
-    </header>
-    <section class="body">
-      <h2>Connecting...</h2>
-    </section>
-    <footer>
-    </footer>
+      </section>
+    </div>
+    <div id="gameover" class="scene-panel hidden">
+      <section class="body">
+        <div class="body-upper">
+          <img class="outputImage" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0ODAiIGhlaWdodD0iNDgwIj4KCjwvc3ZnPg==" width=480 height=480 style="outline: 1px dotted #999">
+        </div>
+        <div class="body-lower">
+          <button class="primary" onclick="game.switchScene('startup')">Play Again</button>
+        </div>
+      </section>
+      <footer>
+      </footer>
+    </div>
+    <div id="colorpicker" class="scene-panel hidden">
+      <section class="body">
+        <div class="body-upper">
+          <h1 class="primary">Select 2 colors</h1>
+        </div>
+        <canvas id="color-wheel"></canvas>
+        <div class="body-lower">
+          <div class="tilegroup">
+            <div data-index="0" class="tile needscolor"><span>1</span></div>
+            <div data-index="1" class="tile needscolor"><span>2</span></div>
+          </div>
+          <button class="primary">Launch...</button>
+        </div>
+      </section>
+    </div>
+    <div id="notavailable" class="scene-panel hidden">
+      <header>
+        <img src="assets/color-launch-logo.svg">
+      </header>
+      <section class="body">
+        <div class="body-upper">
+          <h2 class="heading">This game is unavailable for reasons.</h2>
+          <p class="message"></p>
+        </div>
+        <div class="body-lower"><button class="primary" onclick="game.switchScene('startup')">Try Again</button></div>
+      </section>
+      <footer>
+      </footer>
+    </div>
+    <div id="initializing" class="scene-panel hidden">
+      <header>
+        <img src="assets/color-launch-logo.svg">
+      </header>
+      <section class="body">
+        <h2>Connecting...</h2>
+      </section>
+      <footer>
+      </footer>
+    </div>
   </div>
 </div> 
 <template id="content-strings">

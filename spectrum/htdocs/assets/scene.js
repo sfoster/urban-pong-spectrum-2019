@@ -91,22 +91,28 @@ class ColorPickerScene extends Scene {
     this.elem.classList.remove("disabled");
 
     // initialize the tiles
-    let containerNode = this.pickerContainer = this.elem.querySelector(".body > .body-upper");
-    let dims = containerNode.getBoundingClientRect();
-    if (!this.colorPicker) {
-      this.colorPicker = new ColorPicker(null, {
-        containerNode,
-        incrementDegrees: 3,
+    let containerNode = this.pickerContainer = this.elem.querySelector(".tilegroup");
+    let canvas = this.elem.querySelector("canvas");
+    let dims = canvas.getBoundingClientRect();
+    let size = Math.max(dims.width, dims.height);
+
+    canvas.width = canvas.height = size;
+
+    if (!this.scratchElem) {
+      this.scratchElem = document.createElement("span");
+      this.scratchElem.classList.add("offscreen");
+    }
+    if(!this.colorDisc) {
+      this.colorDisc = new ColorDisc(canvas, {
+        incrementDegrees: 20,
         radius: dims.width / 2,
+        innerRadius: size/5,
       });
     }
-    this.elem.addEventListener("colorpickershow", this);
-    this.elem.addEventListener("colorpickerhide", this);
-
-    this.colorPicker.render();
+    this.colorDisc.render();
 
     this.elem.addEventListener("click", this);
-    this.elem.addEventListener("colorpicked", this);
+    this.elem.addEventListener("colordiscselection", this);
 
     for(let tileIndex = 0; tileIndex < this.options.colorCount; tileIndex++) {
       this.applyColorToTileAtIndex(tileIndex, this.pickedColors[tileIndex]);
@@ -125,8 +131,6 @@ class ColorPickerScene extends Scene {
     super.exit();
     this.elem.removeEventListener("click", this);
     this.elem.removeEventListener("colorpicked", this);
-    this.elem.removeEventListener("colorpickershow", this);
-    this.elem.removeEventListener("colorpickerhide", this);
   }
   updateAndRender() {
     let unpickedCount = this.colorsRemaining;
@@ -142,18 +146,30 @@ class ColorPickerScene extends Scene {
         this.sendButton.textContent = this.strings.colorsNeededButtonText;
         break;
     }
-    let groupElem = this.elem.querySelector(".tilegroup")
+    let groupElem = this.elem.querySelector(".tilegroup");
     let uncoloredTile = groupElem.querySelector(".tile.needscolor");
+    if (uncoloredTile) {
+      this.setActiveTile(uncoloredTile);
+    } else {
+      this.setActiveTile(null, 0);
+    }
     if (!uncoloredTile) {
       groupElem.classList.add("complete");
     }
   }
   onClick(event) {
-    if (
-      event.target.classList.contains("tile") &&
-      !event.target.closest(".disabled")
-    ) {
-      this.colorPicker.attachTo(event.target);
+    if (event.target.classList.contains("tile")) {
+      if (event.target.closest(".disabled")) {
+        return;
+      }
+      let tile = event.target;
+      let tiles = Array.from(this.elem.querySelectorAll(".tile"));
+      let tileIndex = tiles.indexOf(tile);
+      if (!tile.classList.contains("needscolor")) {
+        tile.classList.add("needscolor");
+        this.pickedColors[tileIndex] = null;
+      }
+      this.setActiveTile(tile);
     }
     if (event.target == this.sendButton) {
       this.sendColors(this.pickedColors);
@@ -184,24 +200,37 @@ class ColorPickerScene extends Scene {
   onClientHeartError(event) {
     console.warn("client heartbeat, ex:", event.detail);
   }
-  onColorpickershow() {
-    this.pickerContainer.classList.add("active");
-  }
-  onColorpickerhide() {
-    this.pickerContainer.classList.remove("active");
-  }
-  onColorpicked(event) {
-    console.log("colorpicked event from target", event.target);
-    console.log("colorpicked to hue: %s, rgb: %o", event.detail.hue, event.detail.rgb);
-    let tile = event.target;
-    let tileIndex = Array.from(this.elem.querySelectorAll(".tile")).indexOf(tile);
+  onColordiscselection(event) {
+    this.scratchElem.style.backgroundColor = event.detail.cssColor;
+    let cssColor = this.scratchElem.style.backgroundColor;
+    let rgb = rgbArrayFromCSSColor(cssColor);
+    let detail = Object.assign({}, event.detail, {
+      cssColor,
+      rgb,
+    });
+    let activeTile = this.elem.querySelector(".tile.active");
+
+    console.log("colordiscselection event, activeTile", activeTile, event);
+    console.log("colordiscselection %o", detail);
+    let tileIndex = Array.from(this.elem.querySelectorAll(".tile")).indexOf(activeTile);
     // we have {colorCount + 1} tiles
     if (tileIndex < 0 || tileIndex > this.options.colorCount) {
       console.warn("Unexpected tile index: " + tileIndex);
       return;
     }
-    this.applyColorToTileAtIndex(tileIndex, event.detail.rgb);
+    this.applyColorToTileAtIndex(tileIndex, rgb);
     this.updateAndRender();
+  }
+  setActiveTile(tile, tileIndex=0) {
+    let tiles = Array.from(this.elem.querySelectorAll(".tile")); 
+    if (tile) {
+      tileIndex = tiles.indexOf(tile);
+    } else {
+      tile = tiles[tileIndex];
+    }
+    for (let i=0; i<tiles.length; i++) {
+      tiles[i].classList.toggle("active", i == tileIndex);
+    }
   }
   applyColorToTileAtIndex(tileIndex, rgbColor="") {
     let cssColor = rgbColor && `rgb(${rgbColor[0]}, ${rgbColor[1]}, ${rgbColor[2]})`;

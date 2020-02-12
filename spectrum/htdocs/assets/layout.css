@@ -1,95 +1,103 @@
+html {
+  /* TODO: actual landscape layout */
+  --container-width: 56.25vh;
+  --container-height: 100vh;
+  --tile-size: 15vh;
+}
+
+@media (orientation: portrait) and (max-aspect-ratio: 4/7) {
   html {
-    --container-width: 57vh;
-    --container-height: 100vh;
+    --container-width: 100vw;
+    --container-height: 175vw;
+    --tile-size: 14.5vh;
   }
+}
 
-  @media (orientation: portrait) and (max-aspect-ratio: 4/7) {
-    html {
-      --container-width: 100vw;
-      --container-height: 175vw;
-    }
-  }
+html, body {
+  margin: 0; padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
 
-  html, body {
-    margin: 0; padding: 0;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    font-size: calc(var(--container-width) / 32);
-  }
-  body {
-    background-color: #ccc;
-  }
+header > h2 {
+  margin: 0;
+}
 
-  #game-container {
-    position: relative;
-    width: var(--container-width);
-    height: calc(var(--container-height) - 30px);
-    background-color: #fff;
-    user-select: none;
-    margin: 30px auto 0 auto;
-  }
-  #panels {
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    position: absolute;
-    z-index: 2;
-    display: flex;
-  }
-  .panel {
-    width: 100%;
-    outline: 1px dotted white;
-    white-space: nowrap;
-    scroll-snap-type: x mandatory;
-    overflow-x: scroll;
-    overflow-y: hidden;
-  }
-  .panel.scene-pickcolors {
-    display: flex;
-    flex-direction: column;
-  }
-  .panel .top {
-    outline: 1px dotted white;
-    flex: 1 1 70%;
-    flex-direction: column;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .panel .bottom {
-    outline: 1px dotted white;
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    align-items: center;
-    background-color: #666;
-  }
-  .bottom .tile {
-    width: calc(var(--container-width) / 5);
-    height: calc(var(--container-width) / 5);
-    background-color: rgba(0,0,0, 0.2);
-    border-radius: 20px;
-  }
-  .tile.needscolor {
-    box-shadow: 0px 5px 12px 0px rgba(0,0,0,0.75);
-  }
-  .tile.selected {
-    box-shadow: 0px 5px 12px 0px rgba(255,255,255,0.35);
-  }
-  h1 {
-    font-size: 2rem;
-    margin: 0;
-    padding: 0.2rem 0;
-  }
-  .layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
-  }
-  .offscreen {
-    transform: translateX(-100vw);
-  }
+#page-container {
+  position: relative;
+  width: var(--container-width);
+  height: var(--container-height);
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto 0 auto;
+}
+
+#notification {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3em;
+  position: absolute;
+  z-index: 12;
+  display: flex;
+}
+#notification.hidden {
+  display: none;
+}
+
+#message.hidden {
+  visibility: hidden;
+}
+
+#page-header {
+  padding-top: 0.5rem;
+  flex: 0 1 13vh;
+}
+
+#panels {
+  display: contents;
+}
+
+.scene-panel {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-panel > section.body {
+  padding: 0.5rem 1rem 1rem 0.5rem;
+  flex: 1 1 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-panel > footer {
+  flex: 0 1 0;
+}
+
+.scene-panel.hidden {
+  display: none;
+}
+
+body[data-scene="waiting"] .scene-panel.previous.hidden {
+  display: block;
+}
+
+section.body > .body-upper {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+section.body > .body-lower {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+}
+
+.offscreen {
+  transform: translateX(-100vw);
+}
+
