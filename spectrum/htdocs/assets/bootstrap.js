@@ -53,6 +53,11 @@ window.onload = function() {
     new InitializeScene(document.getElementById("initializing"),
               Object.assign({}, sceneArgs, { id: "startup" }))
   );
+  game.registerScene(
+    "lookup",
+    new LookupScene(document.getElementById("lookup"),
+              Object.assign({}, sceneArgs, { id: "lookup" }))
+  );
 
   // start at the welcome screen
   game.switchScene("startup");

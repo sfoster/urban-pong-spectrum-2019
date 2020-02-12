@@ -44,7 +44,7 @@
     <div id="colorpicker" class="scene-panel hidden">
       <section class="body">
         <div class="body-upper">
-          <h1 class="primary">Select 2 colors</h1>
+          <h2 class="primary">Select 2 colors</h2>
         </div>
         <canvas id="color-wheel"></canvas>
         <div class="body-lower">
@@ -57,9 +57,6 @@
       </section>
     </div>
     <div id="notavailable" class="scene-panel hidden">
-      <header>
-        <img src="assets/color-launch-logo.svg">
-      </header>
       <section class="body">
         <div class="body-upper">
           <h2 class="heading">This game is unavailable for reasons.</h2>
@@ -67,18 +64,21 @@
         </div>
         <div class="body-lower"><button class="primary" onclick="game.switchScene('startup')">Try Again</button></div>
       </section>
-      <footer>
-      </footer>
     </div>
     <div id="initializing" class="scene-panel hidden">
-      <header>
-        <img src="assets/color-launch-logo.svg">
-      </header>
       <section class="body">
         <h2>Connecting...</h2>
       </section>
-      <footer>
-      </footer>
+    </div>
+    <div id="lookup" class="scene-panel hidden">
+      <section class="body">
+        <div class="body-upper">
+          <span id="lookup-arrow">⇧</span>
+        </div>
+        <div class="body-lower">
+          <h2 class="heading">Watch your colors collide in the lights above...</h2>
+        </div>
+      </section>
     </div>
   </div>
 </div> 

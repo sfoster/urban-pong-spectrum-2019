@@ -263,11 +263,20 @@ class ColorPickerScene extends Scene {
     this.game.client.sendColors(this.pickedColors).then(resp => {
       console.log("sendColors response: ", resp);
       this.game.resultColors = resp.colors;
-      game.switchScene("gameover");
+      game.switchScene("lookup");
     }).catch(ex => {
       console.warn("sendColors failed: ", ex);
       game.switchScene("gameover");
     });
+  }
+}
+
+class LookupScene extends Scene {
+  enter(params = {}) {
+    super.enter(params);
+    setTimeout(() => {
+      game.switchScene("gameover");
+    }, 4000);
   }
 }
 

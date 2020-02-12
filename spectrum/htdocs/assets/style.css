@@ -180,7 +180,8 @@ header > h2 {
 #colorpicker .colordisc:not(.active) {
 }
 
-#gameover {
+#gameover.scene-panel {
+  background: #fff;
 }
 
 #gameover section.body {
@@ -192,14 +193,38 @@ header > h2 {
   height: auto;
 }
 
-.colordisc {
-  top: 0;
-  left: 0;
-  z-index: 1;
+#initializing.scene-panel {
+  background: #fff;
+}
+
+#notavailable.scene-panel {
+  background: #fff;
 }
 
 #notavailable .body-upper.map {
   background: url("./map.png") no-repeat bottom;
   background-size: contain;
   margin-bottom: 2em;
+}
+
+
+#lookup > section.body {
+  background-image: linear-gradient(transparent, black);
+  color: #ffff;
+  padding: 0.5rem 1.5rem 1rem 1.5rem;
+}
+
+#lookup #lookup-arrow {
+  font-size: 10rem;
+  color: #ffffcc;
+  position: relative;
+  top: 20rem;
+  animation: bounce 1.2s infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes bounce {
+  0%   { transform: translateY(0); }
+  50%   { transform: translateY(50px); }
+  100% { transform: translateY(0);; }
 }
