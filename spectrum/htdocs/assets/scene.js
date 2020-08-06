@@ -466,9 +466,11 @@ class NotAvailableScene extends Scene {
       }
     }
     if (typeof window.gtag == "function") {
-      gtag("event", "exception", params.errorCode || params.heading);
+      gtag('event', 'exception', {
+        'description': params.errorCode || params.heading,
+        'fatal': false,
+      });
     }
-
   }
   exit() {
     super.exit();
