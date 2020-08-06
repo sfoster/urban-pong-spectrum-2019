@@ -90,8 +90,23 @@
     <p>Session timed out</p>
   </section>
 </template>
+
 <script>
   window.trackingId = '<!--# echo var="tracking_id" default="" -->';
+  if (trackingId && trackingId.charAt(0) !== '<') {
+    // Global site tag (gtag.js) - Google Analytics
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', trackingId);
+
+    var gaScript = document.createElement('script');
+    gaScript.setAttribute('src', 'https://www.googletagmanager.com/gtag/js?id=' + trackingId);
+    gaScript.async = true;
+    document.body.appendChild(gaScript);
+  }
+</script>
+
 </script>
 <script async src="assets/client.js"></script>
 <script async src="assets/scene.js"></script>
