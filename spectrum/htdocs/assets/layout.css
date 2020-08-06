@@ -8,7 +8,7 @@ html {
 @media (orientation: portrait) and (max-aspect-ratio: 4/7) {
   html {
     --container-width: 100vw;
-    --container-height: 175vw;
+    --container-height: calc(7/4*100vw);
     --tile-size: 14.5vh;
   }
 }
