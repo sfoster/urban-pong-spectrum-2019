@@ -1,8 +1,45 @@
-html, body {
-  font-family: 'Proxima Nova Soft', 'Helvetica Neue', sans-serif;
+html {
+  --bg-color: #e5e5e5;
+  --fg-color: #ffffff;
+  --color1: #e72760; /* neon pink */
+  --color2: #487699; /* blue */
+  --color3: #4b4b4b; /* slate */
+  --color4: #29303a; /* dark ui */
+}
+
+body {
+  font-family: 'Montserrat', 'Proxima Nova Soft', 'Helvetica Neue', sans-serif;
+  background-color: #e5e5e5; 
+  /*background: linear-gradient(45deg, #fff, #ccc);*/
   font-size: calc(var(--container-width) / 32);
-  background-color: #ccc;
-  color: #fff;
+  background-color: var(--bg-color);
+  color: var(--color4);
+}
+
+p {
+  line-height: 1.75em;
+}
+
+button.primary {
+  font-size: calc(var(--container-width) / 24);
+  font-family: 'Montserrat', sans-serif; 
+  color: var(--fg-color);
+  background: linear-gradient(135deg, var(--color1), var(--color2));
+  -webkit-background: -webkit-linear-gradient(135deg, var(--color1), var(--color2));
+  border-style: none;
+  border-radius: .15em;
+  padding: 0.5em 1em;
+}
+
+h1.primary, 
+h2.heading {
+  font-size: calc(var(--container-width) / 12);
+  background: linear-gradient(135deg, var(--color1), var(--color2));
+  background-clip: text;
+  fill-color: transparent;
+  -webkit-background: -webkit-linear-gradient(135deg, var(--color1), var(--color2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 header > h2 {

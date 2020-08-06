@@ -14,7 +14,7 @@ class WeightedItems extends Array {
     let pickedItem = this.find(item => {
       currWeight += item.weight;
       return currWeight >= pickWeight;
-    }); 
+    });
     return pickedItem;
   }
 }
@@ -222,7 +222,7 @@ class ColorPickerScene extends Scene {
     this.updateAndRender();
   }
   setActiveTile(tile, tileIndex=0) {
-    let tiles = Array.from(this.elem.querySelectorAll(".tile")); 
+    let tiles = Array.from(this.elem.querySelectorAll(".tile"));
     if (tile) {
       tileIndex = tiles.indexOf(tile);
     } else {
@@ -295,7 +295,7 @@ class InitializeScene extends Scene {
     })
   }
   statusOk(statusData) {
-    this.game.switchScene("welcome", statusData);  
+    this.game.switchScene("welcome", statusData);
   }
   statusNotOk(statusResult){
     if (statusResult && statusResult instanceof Error) {
@@ -367,7 +367,6 @@ class WelcomeScene extends Scene {
     // locationWatchID = navigator.geolocation.watchPosition(handleLocation, handleLocationError, geoOptions);
   }
   showLocationError() {
-    let explanation = 
     game.switchScene("notavailable", { heading: "Join Error", message: resp.message, });
   }
 }
@@ -439,7 +438,7 @@ class NotAvailableScene extends Scene {
   }
   enter(params = {}) {
     super.enter(params);
-    console.log("Enter NotAvailableScene");
+    console.log("Enter NotAvailableScene, errorCode:", params.errorCode);
 
     this.client.toggleHeartbeat(false);
     if (this.game.joined) {
@@ -460,15 +459,19 @@ class NotAvailableScene extends Scene {
     }
     if (params.className) {
       if (this.message.firstElementChild.hasAttribute("class")) {
-        let node = this.elem.querySelector(".body-upper"); 
+        let node = this.elem.querySelector(".body-upper");
         for (let cls of params.className.split(" ")) {
-          node.classList.add(cls); 
+          node.classList.add(cls);
         }
       }
     }
+    if (typeof window.gtag == "function") {
+      gtag("event", "exception", params.errorCode || params.heading);
+    }
+
   }
   exit() {
     super.exit();
-    this.elem.querySelector(".body-upper").className = "body-upper"; 
+    this.elem.querySelector(".body-upper").className = "body-upper";
   }
 }

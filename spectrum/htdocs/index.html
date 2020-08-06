@@ -81,12 +81,18 @@
       </section>
     </div>
   </div>
-</div> 
+</div>
 <template id="content-strings">
   <section id="error-not-nearby" title="Oh Noes" class="map">
     <p>You need to be in the Eugene, OR area to play</p>
   </section>
-</template> 
+  <section id="error-timed-out" title="Oops" class="map">
+    <p>Session timed out</p>
+  </section>
+</template>
+<script>
+  window.trackingId = '<!--# echo var="tracking_id" default="" -->';
+</script>
 <script async src="assets/client.js"></script>
 <script async src="assets/scene.js"></script>
 <script async src="assets/colorpicker.js"></script>

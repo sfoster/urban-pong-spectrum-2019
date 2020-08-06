@@ -27,6 +27,12 @@ class Game {
     }
     this.currentScene = this.scenes[name];
     this.currentScene.enter(sceneParams);
+    if (typeof window.gtag == "function") {
+      gtag('event', 'screen_view', {
+         "app_name": "Spectrum",
+         "screen_name": name,
+      });
+    }
   }
   showNotification(message) {
     let elem = this.elem.querySelector("#notification");
