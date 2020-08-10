@@ -1,7 +1,10 @@
 (function(){
   // the defaults, and property names we can expect on the querystring
+  let appName = window.gAppName && window.gAppName.charAt(0) !== '<' ? window.gAppName : "spectrum";
+  let apiVersion = window.gApiVersion && window.gApiVersion.charAt(0) !== '<' ? window.gApiVersion : "";
+
   const config = {
-    prefix: "/queue",
+    prefix: appName + (apiVersion && ("-" + apiVersion)),
     heartbeatInterval: 5000,
   };
   // pull config from querystring

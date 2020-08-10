@@ -28,10 +28,13 @@ module.exports = {
   ORIGIN_THRESHOLD: process.env.ORIGIN_THRESHOLD || "100000",
 
   serveStatic: toBool(process.env.SERVE_STATIC),
-  pathPrefix: process.env.PATH_PREFIX || "queue/",
+
+  appName: process.env.APP_NAME || "spectrum",
+  appVersion: process.env.APP_VERSION || "",
+
   controllerRequired: false,
   LIGHT_CONTROLLER_ID: "spectrum-ctrl",
 
-  MQTT_TOPIC_PREFIX: `spectrum-${process.env.API_VERSION || '0.1.0'}-${process.env.INSTANCE_NAME || 'dev'}`,
+  MQTT_TOPIC_PREFIX: `${process.env.APP_NAME || "spectrum"}-${process.env.API_VERSION || '0.1.0'}-${process.env.INSTANCE_NAME || 'dev'}`,
   MQTT_BROKER_SPECTRUM_PASSWORD: 'spectrum-app',
 };

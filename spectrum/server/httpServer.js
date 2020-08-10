@@ -52,6 +52,9 @@ function getDistance(coords) {
 
 const app = express();
 const config = require("./config");
+const appNamePrefix = "/" + (config.appName + (config.appVersion && ("-" + config.appVersion)));
+console.log("Using appNamePrefix:", appNamePrefix);
+
 app.set("controllerRequired", config.controllerRequired);
 
 app.use(session({secret: "Shh, its a secret!"}));
@@ -69,23 +72,23 @@ if (config.serveStatic) {
 // request for queue details
 //   auth?
 //   response is JSON like { position: n,  timestamp: "" }
-app.get("/queue", api.queue.getSummary);
+app.get(appNamePrefix, api.queue.getSummary);
 
 // request for queue details fpr a given client
 //   error unless auth cookie is valid
 //   response is JSON like { position: n,  timestamp: "" }
-app.get("/queue/position", isAuthenticated, api.queue.getPosition);
+app.get(appNamePrefix + "/position", isAuthenticated, api.queue.getPosition);
 
 // request for high-level service status
 //   response is JSON like { clients: n,  timestamp: "" }
-app.get("/queue/status", api.status.getStatus);
+app.get(appNamePrefix + "/status", api.status.getStatus);
 
 // request to join queue.
 //   Request includes geolocation,
 //   Handler authenticates request, generates/retrieves clientid, adds clientid to queue
 //   response sets auth cookie, body is json object with queue (client?) id and topic
 //   the auth cookie and queue id allows the client to subscribe to topic
-app.post("/queue/join", function(req, res, next) {
+app.post(appNamePrefix + "/join", function(req, res, next) {
   console.log("/join");
   let distanceMeters;
   if (req.body.coords) {
@@ -105,10 +108,10 @@ app.post("/queue/join", function(req, res, next) {
 });
 
 // explicitly leave, remove client from any queue, unset any auth cookie
-app.post("/queue/leave", isAuthenticated, api.queue.removeClient);
+app.post(appNamePrefix + "/leave", isAuthenticated, api.queue.removeClient);
 
 // request to send color values to display
 //   Request includes an array of rgb colors,
-app.post("/queue/colors", isAuthenticated, api.colors.sendColors);
+app.post(appNamePrefix + "/colors", isAuthenticated, api.colors.sendColors);
 
 module.exports = app;
