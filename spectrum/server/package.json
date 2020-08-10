@@ -5,5 +5,8 @@
     "express-session": "^1.17.0",
     "mqtt": "^3.0.0"
   },
-  "version": "0.1.1"
+  "version": "0.1.1",
+  "scripts": {
+    "start": "node server.js"
+  }
 }
