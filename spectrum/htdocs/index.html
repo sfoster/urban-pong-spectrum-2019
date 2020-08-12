@@ -92,9 +92,10 @@
 </template>
 
 <script>
-  window.gAppName =    '<!-- # echo var="app_name"    default="" -->';
-  window.gApiVersion = '<!-- # echo var="api_version" default="" -->';
-  window.trackingId =  '<!-- # echo var="tracking_id" default="" -->';
+  window.gAppName =    '<!--#echo var="APP_NAME"    default="" -->';
+  window.gApiVersion = '<!--#echo var="API_VERSION" default="" -->';
+  window.trackingId =  '<!--#echo var="TRACKING_ID" default="" -->';
+
   if (trackingId && trackingId.charAt(0) !== '<') {
     // Global site tag (gtag.js) - Google Analytics
     window.dataLayer = window.dataLayer || [];
