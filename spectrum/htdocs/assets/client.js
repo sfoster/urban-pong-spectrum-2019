@@ -71,7 +71,7 @@ function FakeAPIMixin(Base) {
       return Promise.resolve(resp);
     }
     status() {
-       return Promise.resolve({ status: "ok" }); 
+       return Promise.resolve({ status: "ok" });
     }
   }
   return FakeAPIClient;
@@ -127,7 +127,7 @@ function HttpAPIMixin(Base) {
         });
     }
     getPosition() {
-      return this._sendRequest("", "GET");
+      return this._sendRequest("/position", "GET");
     }
     joinQueue(coords) {
       console.log("Sending joinQueue request with coords: ", coords);

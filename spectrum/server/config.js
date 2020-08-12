@@ -17,7 +17,13 @@ function toBool(value) {
   }
 }
 
+let routePrefix = "/" + (process.env.app_name || "spectrum");
+if (process.env.api_version) {
+  routePrefix += "-" + process.env.api_version;
+}
+
 module.exports = {
+  LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "DEBUG", // One of DEBUG, INFO, WARN, ERROR
   MQTT_BROKER_URL: process.env.MQTT_BROKER_URL || "mqtt://localhost:1883",
   COOKIE_SECRET: process.env.COOKIE_SECRET || 'somesecret',
   CLIENT_ID: process.env.CLIENT_ID || "clientid",
@@ -27,11 +33,9 @@ module.exports = {
   ORIGIN_LONGITUDE: process.env.ORIGIN_LONGITUDE || "-123.092554",
   ORIGIN_THRESHOLD: process.env.ORIGIN_THRESHOLD || "100000",
 
+  HTTP_ROUTE_PREFIX: routePrefix,
+
   serveStatic: toBool(process.env.SERVE_STATIC),
-
-  appName: process.env.app_name || "spectrum",
-  appVersion: process.env.app_version || "",
-
   controllerRequired: false,
   LIGHT_CONTROLLER_ID: "spectrum-ctrl",
 

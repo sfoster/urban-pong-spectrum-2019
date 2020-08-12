@@ -1,4 +1,5 @@
 const config = require("./config");
+const logger = require("./logger");
 const serverTime = require("./serverTime");
 const Url = require("url");
 const Mqtt = require("mqtt");
@@ -31,7 +32,7 @@ class MqttClient extends EventEmitter {
 
     let connectUrl = Url.format(mqttUrl);
     this._client = Mqtt.connect(connectUrl);
-    console.log("mqtt client connecting to: ", connectUrl);
+    logger.info("mqtt client connecting to: ", connectUrl);
 
     this._connectedPromise = new Promise((res, rej) => {
       this._resolveConnected = res;
@@ -44,12 +45,12 @@ class MqttClient extends EventEmitter {
     });
     this._client.on("message", (topic, message) => {
       let name = topic.substring(config.MQTT_TOPIC_PREFIX.length);
-      console.log("Got message: ", topic, name, message.toString());
+      logger.debug("Got message: ", topic, name, message.toString());
       let messageData;
       try {
         messageData = JSON.parse(message.toString());
       } catch (ex) {
-        console.warn("Failed to parse JSON message: ", message && message.toString());
+        logger.warn("Failed to parse JSON message: ", message && message.toString());
         return;
       }
       this.emit(name, messageData);
@@ -60,11 +61,11 @@ class MqttClient extends EventEmitter {
     this._client && this._client.end();
   }
   handleEvent(name, event, payload) {
-    console.log("handleEvent: ", name, event);
+    logger.debug("handleEvent: ", name, event);
     switch(name) {
       case "connect":
         this._connected = true;
-        console.log("mqtt client connected");
+        logger.info("mqtt client connected");
         if (this._resolveConnected) {
           this._resolveConnected();
           delete this._resolveConnected;
@@ -94,7 +95,7 @@ class MqttClient extends EventEmitter {
       let topic = `${config.MQTT_TOPIC_PREFIX}/${name}`;
       let message = JSON.stringify(messageData);
       this._client.publish(topic, message);
-      console.log("publish on topic: ", topic);
+      logger.debug("publish on topic: ", topic);
     });
   }
   subscribe(name, callback) {
@@ -102,10 +103,10 @@ class MqttClient extends EventEmitter {
     return this.connect().then(() => {
       this._client.subscribe(topic, err => {
         if (err) {
-          console.warn("Failed to subscribe to topic: " + topic, err);
+          logger.warn("Failed to subscribe to topic: " + topic, err);
           return;
         }
-        console.log("Subscribed to topic: " + topic);
+        logger.info("Subscribed to topic: " + topic);
       });
     });
   }

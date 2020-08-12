@@ -2,6 +2,7 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 const path = require('path');
+const logger = require("./logger");
 const store = require('./datastore');
 const haversine = require('./haversine');
 
@@ -14,20 +15,21 @@ const session = require('express-session');
 const maxClientTimeoutMS = 60000;
 
 function isAuthenticated(req, res, next) {
-  if (req.session.nearby) {
-    console.log("isAuthenticated, allowing this request");
-    return next();
-  }
-  let now = Date.now();
+  logger.debug(`isAuthenticated, request for  ${req.method} ${req.path}`);
   let message = "nope";
 
-  let client = store.clients.get(req.sessionID);
-  if (client && now - client.lastPing < maxClientTimeoutMS) {
-    client.lastPing = now;
-    return next();
-  } else {
-    message = "timed-out";
+  if (req.session.nearby) {
+    let client = store.clients.get(req.sessionID);
+    let now = Date.now();
+    if (client && now - client.lastPing < maxClientTimeoutMS) {
+      logger.debug(`isAuthenticated, bumping lastPing on client: ${client.id}`);
+      client.lastPing = now;
+      return next();
+    } else {
+      message = "timed-out";
+    }
   }
+  logger.debug(`isAuthenticated, deny request with message: ${message}`);
   denyRequest({ status: 401, message }, req, res);
 }
 
@@ -52,8 +54,8 @@ function getDistance(coords) {
 
 const app = express();
 const config = require("./config");
-const appNamePrefix = "/" + (config.appName + (config.appVersion && ("-" + config.appVersion)));
-console.log("Using appNamePrefix:", appNamePrefix);
+const appNamePrefix = config.HTTP_ROUTE_PREFIX;
+logger.debug("Using appNamePrefix:", appNamePrefix);
 
 app.set("controllerRequired", config.controllerRequired);
 
@@ -89,13 +91,11 @@ app.get(appNamePrefix + "/status", api.status.getStatus);
 //   response sets auth cookie, body is json object with queue (client?) id and topic
 //   the auth cookie and queue id allows the client to subscribe to topic
 app.post(appNamePrefix + "/join", function(req, res, next) {
-  console.log("/join");
   let distanceMeters;
   if (req.body.coords) {
     distanceMeters = getDistance(req.body.coords);
     if (!isNaN(distanceMeters) && distanceMeters < config.ORIGIN_THRESHOLD) {
       req.session.nearby = true;
-      console.log("/join, set nearby");
       api.queue.addClient(req, res, next);
       return next();
     }
